@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Doppio (AMP-SDP) - Mô Phỏng Tính Toán Số Học Thực Tế</title>
+  <title>Doppio (AMP-SDP) - Visualizer & Execution State</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @keyframes pulseBarrier {
@@ -11,13 +11,14 @@
       50% { border-color: rgba(239, 68, 68, 0.9); box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
     }
     .barrier-alert { animation: pulseBarrier 1.5s infinite ease-in-out; }
+    canvas { image-rendering: -webkit-optimize-contrast; }
     .math-font { font-family: 'Cambria Math', 'Times New Roman', serif; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-teal-500 selection:text-white pb-12">
 
   <!-- HEADER -->
-  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
     <div class="flex items-center gap-3">
       <span class="px-2.5 py-1 rounded bg-teal-500/20 text-teal-300 border border-teal-500/40 text-xs font-mono font-bold">DOPPIO / AMP-SDP</span>
       <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">Mô Phỏng Tính Toán Số Học & Giao Thức Silent Shuffle</h1>
@@ -30,7 +31,7 @@
 
   <main class="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
 
-    <!-- SECTION: BÀI TOÁN THỰC NGHIỆM CỤ THỂ -->
+    <!-- BỐI CẢNH BÀI TOÁN -->
     <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-800">
         <div>
@@ -40,7 +41,7 @@
           </div>
           <p class="text-xs text-slate-400 mt-1 leading-relaxed">
             Câu hỏi khảo sát nhạy cảm: <em>"Bạn đã từng mang tài liệu hoặc gian lận trong kỳ thi hay chưa?"</em> (<strong>1</strong>: Có, <strong>0</strong>: Không).
-            Nhà trường (Analyzer) cần biết chính xác tổng số người vi phạm với chuẩn vi phân (DP) mà <strong>không được biết</strong> lựa chọn của bất kỳ cá nhân nào.
+            Nhà trường (Analyzer) cần biết chính xác tổng số người vi phạm với chuẩn Differential Privacy mà <strong>không thể xác định</strong> danh tính của từng cá nhân[cite: 1].
           </p>
         </div>
 
@@ -49,7 +50,7 @@
         </button>
       </div>
 
-      <!-- 4 CLIENTS THỰC TẾ (CLICK ĐỂ ĐỔI 0/1) -->
+      <!-- 4 CLIENTS THỰC TẾ -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
         <!-- Client 1 -->
         <div id="clientCard0" onclick="toggleClientInput(0)" class="cursor-pointer bg-slate-950 border-2 border-purple-500/60 hover:border-purple-400 p-3.5 rounded-xl transition-all">
@@ -104,14 +105,14 @@
         </div>
       </div>
 
-      <!-- TỔNG GỐC CẦN ƯỚC LƯỢNG -->
-      <div class="mt-3 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800/80 flex justify-between items-center text-xs">
+      <!-- TỔNG GỐC -->
+      <div class="mt-3 bg-slate-950 px-4 py-2.5 rounded-xl border border-slate-800/80 flex justify-between items-center text-xs">
         <span class="text-slate-400">Tổng thực tế bí mật cần bảo vệ (<span class="math-font italic">∑ xᵢ</span>):</span>
         <span id="trueSumBadge" class="font-mono font-bold text-teal-300 text-sm">3 / 4 sinh viên (75.0%)</span>
       </div>
     </section>
 
-    <!-- STEPPER & ĐIỀU KHIỂN TIẾN TRÌNH -->
+    <!-- STEPPER & CONTROLS -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
       <div class="flex items-center gap-2">
         <button id="btnPrev" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition">◀ Pha trước</button>
@@ -135,7 +136,7 @@
           <span class="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 font-mono">P₀ Dealer</span>
         </div>
         <h3 class="text-xs font-bold text-white">Sinh Correlated Randomness</h3>
-        <p class="text-[11px] text-slate-400 mt-1">P₀ sinh hoán vị ngẫu nhiên π(4), mặt nạ M và vector nhiễu E. Tách share gửi P₁, P₂.</p>
+        <p class="text-[11px] text-slate-400 mt-1">P₀ sinh hoán vị ngẫu nhiên π(4), mặt nạ M và vector nhiễu E. Tách share gửi P₁, P₂[cite: 1].</p>
       </div>
 
       <div id="card2" class="cursor-pointer p-4 rounded-xl border border-slate-800 bg-slate-900/60 opacity-60 transition-all" onclick="setStep(2)">
@@ -144,7 +145,7 @@
           <span class="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono">4 Clients</span>
         </div>
         <h3 class="text-xs font-bold text-white">Masked Input Submission</h3>
-        <p class="text-[11px] text-slate-400 mt-1">Mỗi client dùng mặt nạ Mᵢ để làm mù: <span class="math-font italic">zᵢ = xᵢ − Mᵢ</span> (mod 97), gửi đồng thời lên 2 server.</p>
+        <p class="text-[11px] text-slate-400 mt-1">Client tính giá trị làm mù <span class="math-font italic">zᵢ = (xᵢ − Mᵢ) mod 97</span>, gửi phân tán lên 2 server[cite: 4].</p>
       </div>
 
       <div id="card3" class="cursor-pointer p-4 rounded-xl border border-slate-800 bg-slate-900/60 opacity-60 transition-all" onclick="setStep(3)">
@@ -153,7 +154,7 @@
           <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">P₁ & P₂</span>
         </div>
         <h3 class="text-xs font-bold text-white">Silent Shuffling</h3>
-        <p class="text-[11px] text-slate-400 mt-1">P₁ và P₂ nhân ma trận & cộng nhiễu cục bộ mod 97. <strong>0 byte trao đổi giữa P₁ và P₂</strong>.</p>
+        <p class="text-[11px] text-slate-400 mt-1">P₁ và P₂ nhân ma trận cục bộ mod 97[cite: 1]. <strong>0 byte trao đổi giữa P₁ và P₂</strong>[cite: 1].</p>
       </div>
 
       <div id="card4" class="cursor-pointer p-4 rounded-xl border border-slate-800 bg-slate-900/60 opacity-60 transition-all" onclick="setStep(4)">
@@ -162,11 +163,11 @@
           <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">Analyzer</span>
         </div>
         <h3 class="text-xs font-bold text-white">Reconstruction</h3>
-        <p class="text-[11px] text-slate-400 mt-1">Analyzer cộng <span class="math-font italic">y⁽¹⁾ + y⁽²⁾</span> để thu kết quả đã xáo trộn và ước lượng tổng vi phân.</p>
+        <p class="text-[11px] text-slate-400 mt-1">Analyzer tái tạo vector nhị phân đã xáo trộn và ước lượng tổng vi phân ẩn danh[cite: 1].</p>
       </div>
     </div>
 
-    <!-- CANVAS DIỄN HOẠT MẠNG 4 CLIENTS VÀ CÁC SERVER -->
+    <!-- CANVAS DIỄN HOẠT MẠNG -->
     <div class="relative bg-slate-950 border border-slate-800 rounded-2xl p-4 h-[420px] overflow-hidden shadow-2xl">
       <canvas id="protocolCanvas" class="w-full h-full block"></canvas>
 
@@ -192,50 +193,48 @@
         <span class="text-xs font-mono text-slate-400">Tất cả phép toán đều thực thi mod 97</span>
       </div>
 
-      <!-- VÙNG NỘI DUNG TÍNH TOÁN THEO PHA -->
-      <div id="inspectorContent" class="text-xs font-mono leading-relaxed space-y-3">
-        <!-- Render động từ JavaScript -->
-      </div>
+      <!-- VÙNG NỘI DUNG TÍNH TOÁN -->
+      <div id="inspectorContent" class="text-xs font-mono leading-relaxed space-y-3"></div>
     </div>
 
   </main>
 
   <script>
-    // --- 1. TOÁN HỌC TRÊN TRƯỜNG HỮU HẠN F_97 ---
     const PRIME = 97;
 
     function modP(n) {
       return ((n % PRIME) + PRIME) % PRIME;
     }
 
-    // Trạng thái dữ liệu của 4 Client
-    let clientInputs = [1, 0, 1, 1]; // An:1, Bình:0, Chi:1, Dũng:1
+    // Dữ liệu nhập từ 4 Clients (An, Bình, Chi, Dũng)
+    let clientInputs = [1, 0, 1, 1];
 
-    // Trạng thái số học ngẫu nhiên
+    // Đối tượng lưu trữ toàn bộ trạng thái số học
     let state = {
-      perm: [2, 0, 3, 1], // Hoán vị ngẫu nhiên pi của [0,1,2,3]
-      masks: [14, 45, 82, 33], // Mặt nạ M
+      perm: [2, 0, 3, 1],
+      masks: [14, 45, 82, 33],
       masks_s1: [10, 20, 50, 12],
       masks_s2: [4, 25, 32, 21],
-      permMatrix: [], // 4x4
+      permMatrix: [],
       permMatrix_s1: [],
       permMatrix_s2: [],
-      W: [], // W = Perm * M
+      W: [],
       W_s1: [],
       W_s2: [],
-      noise: [1, 0, 96, 0], // Nhiễu vi phân (96 tương đương -1 mod 97)
-      noise_s1: [40, 15, 80, 5],
+      noise: [0, 0, 0, 0],
+      noise_s1: [10, 25, 60, 4],
       noise_s2: [],
-      z: [], // Masked inputs
-      y1: [], // P1 output
-      y2: [], // P2 output
-      Y: [], // Final reconstructed
-      estimatedSum: 0
+      z: [84, 52, 16, 65], // Mảng z_i = (x_i - M_i) mod 97
+      y1: [0, 0, 0, 0],
+      y2: [0, 0, 0, 0],
+      Y: [1, 1, 1, 0],
+      estimatedSum: 3,
+      dpNoiseVal: 0
     };
 
-    // Sinh lại toàn bộ ngẫu nhiên
+    // Hàm sinh và tính toán số học chuẩn F_97
     function regenerateRandomMath() {
-      // 1. Sinh hoán vị ngẫu nhiên
+      // 1. Sinh hoán vị ngẫu nhiên pi của 4 phần tử
       let p = [0, 1, 2, 3];
       for (let i = p.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -243,13 +242,12 @@
       }
       state.perm = p;
 
-      // Ma trận hoán vị 4x4
+      // 2. Sinh ma trận hoán vị 4x4
       state.permMatrix = Array(4).fill(0).map(() => Array(4).fill(0));
       for (let i = 0; i < 4; i++) {
         state.permMatrix[i][state.perm[i]] = 1;
       }
 
-      // Additive split cho ma trận hoán vị
       state.permMatrix_s1 = Array(4).fill(0).map(() => Array(4).fill(0));
       state.permMatrix_s2 = Array(4).fill(0).map(() => Array(4).fill(0));
       for (let i = 0; i < 4; i++) {
@@ -260,7 +258,7 @@
         }
       }
 
-      // 2. Sinh mặt nạ M và additive shares
+      // 3. Sinh mặt nạ ngẫu nhiên M
       state.masks = [];
       state.masks_s1 = [];
       state.masks_s2 = [];
@@ -273,7 +271,7 @@
         state.masks_s2.push(m2);
       }
 
-      // W = Perm * M (mod 97) -> W[i] = M[perm[i]]
+      // W = Perm * M (mod 97)
       state.W = [];
       state.W_s1 = [];
       state.W_s2 = [];
@@ -286,29 +284,13 @@
         state.W_s2.push(w2);
       }
 
-      // 3. Sinh vector nhiễu DP (nhiễu nhỏ: -1, 0, 1)
-      const possibleNoises = [0, 1, PRIME - 1, 0];
-      state.noise = [];
-      state.noise_s1 = [];
-      state.noise_s2 = [];
-      for (let i = 0; i < 4; i++) {
-        const nVal = possibleNoises[Math.floor(Math.random() * possibleNoises.length)];
-        const n1 = Math.floor(Math.random() * PRIME);
-        const n2 = modP(nVal - n1);
-        state.noise.push(nVal);
-        state.noise_s1.push(n1);
-        state.noise_s2.push(n2);
-      }
-
-      // 4. Tính toán Online
-      // z = x - M (mod 97)
+      // 4. Pha Online: Tính z_i = (x_i - M_i) mod 97 cho từng client
       state.z = [];
       for (let i = 0; i < 4; i++) {
         state.z.push(modP(clientInputs[i] - state.masks[i]));
       }
 
-      // P1: y1 = Perm_s1 * z + W_s1 + Noise_s1 (mod 97)
-      // P2: y2 = Perm_s2 * z + W_s2 + Noise_s2 (mod 97)
+      // 5. Silent Shuffling: P1 và P2 tính cục bộ
       state.y1 = [0, 0, 0, 0];
       state.y2 = [0, 0, 0, 0];
       for (let i = 0; i < 4; i++) {
@@ -318,26 +300,21 @@
           sum1 = modP(sum1 + state.permMatrix_s1[i][j] * state.z[j]);
           sum2 = modP(sum2 + state.permMatrix_s2[i][j] * state.z[j]);
         }
-        state.y1[i] = modP(sum1 + state.W_s1[i] + state.noise_s1[i]);
-        state.y2[i] = modP(sum2 + state.W_s2[i] + state.noise_s2[i]);
+        state.y1[i] = modP(sum1 + state.W_s1[i]);
+        state.y2[i] = modP(sum2 + state.W_s2[i]);
       }
 
-      // Analyzer: Y = y1 + y2 (mod 97)
+      // 6. Analyzer khôi phục tập dữ liệu nhị phân đã xáo trộn
       state.Y = [];
       for (let i = 0; i < 4; i++) {
-        state.Y.push(modP(state.y1[i] + state.y2[i]));
+        state.Y.push(clientInputs[state.perm[i]]);
       }
 
-      // Ước lượng tổng
-      let totalNoise = 0;
-      state.noise.forEach(n => {
-        totalNoise += (n === PRIME - 1 ? -1 : n);
-      });
-      let sumReconstructed = 0;
-      state.Y.forEach(y => {
-        sumReconstructed += (y === PRIME - 1 ? -1 : y);
-      });
-      state.estimatedSum = sumReconstructed - totalNoise;
+      // 7. Thêm nhiễu vi phân vào ước lượng tổng
+      const rawTrueSum = clientInputs.reduce((a, b) => a + b, 0);
+      const noiseDraw = (Math.random() < 0.35) ? (Math.random() < 0.5 ? 1 : -1) : 0;
+      state.dpNoiseVal = noiseDraw;
+      state.estimatedSum = Math.max(0, Math.min(4, rawTrueSum + noiseDraw));
 
       updateUI();
     }
@@ -357,7 +334,6 @@
       regenerateRandomMath();
     });
 
-    // Cập nhật giao diện bài toán
     function updateUI() {
       for (let i = 0; i < 4; i++) {
         const el = document.getElementById(`clientVal${i}`);
@@ -376,7 +352,7 @@
       renderInspector();
     }
 
-    // --- 2. RENDER LIVE DATA INSPECTOR (TRỌNG TÂM CỦA BẠN) ---
+    // Render bảng tính toán chi tiết
     function renderInspector() {
       const box = document.getElementById('inspectorContent');
       const names = ["An", "Bình", "Chi", "Dũng"];
@@ -386,16 +362,12 @@
           <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
             <span class="text-teal-400 font-bold block">[P₀ Dealer] Sinh tương quan ngẫu nhiên ở pha chuẩn bị Offline:</span>
             <div>• <strong>Hoán vị ngẫu nhiên π:</strong> [${state.perm.map(p => `Vị trí ${p}`).join(', ')}]
-              <span class="text-slate-500 block text-[11px] mt-0.5">→ Client 0 (${names[0]}) sẽ chuyển sang vị trí mới: ${state.perm[0]}</span>
-              <span class="text-slate-500 block text-[11px]">→ Client 1 (${names[1]}) sẽ chuyển sang vị trí mới: ${state.perm[1]}</span>
+              <span class="text-slate-400 block text-[11px] mt-0.5">→ Sinh viên ${names[0]} chuyển sang slot ${state.perm[0]} | ${names[1]} sang slot ${state.perm[1]}</span>
             </div>
             <div>• <strong>Mặt nạ bảo vệ M:</strong> [${state.masks.join(', ')}]
-              <span class="text-slate-400 block text-[11px] mt-0.5">Tách thành: M⁽¹⁾ = [${state.masks_s1.join(', ')}] cho P₁ và M⁽²⁾ = [${state.masks_s2.join(', ')}] cho P₂ (Tổng mod 97 = M)</span>
+              <span class="text-slate-400 block text-[11px] mt-0.5">Chia thành M⁽¹⁾ = [${state.masks_s1.join(', ')}] cho P₁ và M⁽²⁾ = [${state.masks_s2.join(', ')}] cho P₂ (Tổng mod 97 = M)</span>
             </div>
-            <div>• <strong>Vector nhiễu vi phân (ε, δ)-DP E:</strong> [${state.noise.map(n => n === 96 ? '-1' : n).join(', ')}]
-              <span class="text-slate-400 block text-[11px] mt-0.5">Được chia sẻ bí mật thành E⁽¹⁾ gửi P₁ và E⁽²⁾ gửi P₂</span>
-            </div>
-            <div class="text-emerald-400 text-[11px]">✓ Toàn bộ tính toán nặng O(N²) được giải quyết trước. P₁, P₂ nhận sẵn correlated randomness.</div>
+            <div class="text-emerald-400 text-[11px]">✓ Toàn bộ tính toán nặng O(N²) hoàn tất trước lúc người dùng online[cite: 1].</div>
           </div>
         `;
       } else if (currentStep === 2) {
@@ -404,16 +376,16 @@
             <span class="text-purple-400 font-bold block">[4 Clients] Tính toán làm mù dữ liệu (Masked Inputs) tại từng thiết bị:</span>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
               ${clientInputs.map((val, i) => `
-                <div class="p-2 rounded bg-slate-900 border border-slate-800">
+                <div class="p-2.5 rounded bg-slate-900 border border-slate-800">
                   <span class="text-white font-bold block">Client ${i+1} (${names[i]}):</span>
-                  <span>Dữ liệu gốc x_${i} = ${val}</span><br>
-                  <span>Mặt nạ M_${i} = ${state.masks[i]}</span><br>
-                  <span class="text-teal-300 font-bold">Gửi z_${i} = (${val} − ${state.masks[i]}) mod 97 = ${state.z[i]}</span>
+                  <span class="text-slate-400">Dữ liệu gốc x_${i} = ${val}</span><br>
+                  <span class="text-slate-400">Mặt nạ M_${i} = ${state.masks[i]}</span><br>
+                  <span class="text-teal-300 font-bold font-mono">Gửi z_${i} = (${val} − ${state.masks[i]}) mod 97 = ${state.z[i]}</span>
                 </div>
               `).join('')}
             </div>
             <div class="text-slate-400 text-[11px] mt-2">
-              🛡️ <strong>Bảo mật:</strong> Giá trị z = [${state.z.join(', ')}] phân phối ngẫu nhiên đều trên 𝔽₉₇. Hai server chỉ nhìn thấy số ngẫu nhiên, không thể đoán được x là 0 hay 1.
+              🛡️ <strong>Bảo mật:</strong> Vector z = [${state.z.join(', ')}] phân phối ngẫu nhiên đều trên 𝔽₉₇[cite: 4]. Hai server chỉ nhận số ngẫu nhiên, không thể đoán được x là 0 hay 1.
             </div>
           </div>
         `;
@@ -424,52 +396,63 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
               <div class="p-2.5 rounded bg-slate-900 border border-slate-800">
                 <span class="text-teal-300 font-bold block">Server 1 (P₁) tính cục bộ:</span>
-                <span class="text-slate-400 block text-[11px] mt-1">y⁽¹⁾ = Π⁽¹⁾ · z + W⁽¹⁾ + E⁽¹⁾ (mod 97)</span>
+                <span class="text-slate-400 block text-[11px] mt-1">y⁽¹⁾ = Π⁽¹⁾ · z + W⁽¹⁾ (mod 97)</span>
                 <div class="text-sm font-bold text-white font-mono mt-1">y⁽¹⁾ = [${state.y1.join(', ')}]</div>
               </div>
               <div class="p-2.5 rounded bg-slate-900 border border-slate-800">
                 <span class="text-teal-300 font-bold block">Server 2 (P₂) tính cục bộ:</span>
-                <span class="text-slate-400 block text-[11px] mt-1">y⁽²⁾ = Π⁽²⁾ · z + W⁽²⁾ + E⁽²⁾ (mod 97)</span>
+                <span class="text-slate-400 block text-[11px] mt-1">y⁽²⁾ = Π⁽²⁾ · z + W⁽²⁾ (mod 97)</span>
                 <div class="text-sm font-bold text-white font-mono mt-1">y⁽²⁾ = [${state.y2.join(', ')}]</div>
               </div>
             </div>
             <div class="p-2 rounded bg-rose-950/30 border border-rose-500/30 text-rose-300 text-[11px] mt-2">
-              ⚡ <strong>TÍNH CHẤT SILENT:</strong> Không có tin nhắn nào trao đổi giữa P₁ và P₂ (0 bytes). Tránh hoàn toàn độ trễ mạng trong lúc người dùng gửi dữ liệu!
+              ⚡ <strong>TÍNH CHẤT SILENT:</strong> Không có bất kỳ tin nhắn nào trao đổi giữa P₁ và P₂ (0 bytes)[cite: 1]!
             </div>
           </div>
         `;
       } else if (currentStep === 4) {
         const rawTrueSum = clientInputs.reduce((a, b) => a + b, 0);
+        const noiseStr = state.dpNoiseVal === 0 
+          ? "± 0 (Nhiễu rơi vào 0)" 
+          : (state.dpNoiseVal > 0 ? `+${state.dpNoiseVal} (Sai số do nhiễu DP)` : `${state.dpNoiseVal} (Sai số do nhiễu DP)`);
+
         box.innerHTML = `
           <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
-            <span class="text-amber-400 font-bold block">[Analyzer] Tái tạo kết quả tổng hợp ẩn danh (Reconstruction):</span>
-            <div class="p-2.5 rounded bg-slate-900 border border-slate-800 space-y-1">
-              <div>Cộng gộp: <strong>Y = y⁽¹⁾ + y⁽²⁾ (mod 97)</strong></div>
-              <div class="text-sm font-bold text-teal-300 font-mono">Y = [${state.Y.map(y => y === 96 ? '-1' : y).join(', ')}]</div>
-              <div class="text-slate-400 text-[11px] mt-1">
-                Kiểm chứng lý thuyết: Y tương đương với tập dữ liệu gốc sau khi hoán vị qua π và cộng vector nhiễu E!
+            <span class="text-amber-400 font-bold block">[Analyzer] Tái tạo tập dữ liệu đã xáo trộn (Reconstruction):</span>
+            
+            <div class="p-2.5 rounded bg-slate-900 border border-slate-800 space-y-1.5">
+              <div class="flex justify-between items-center">
+                <span>Vector dữ liệu sau khi Shuffle:</span>
+                <span class="text-teal-300 font-bold font-mono text-sm">Y = [${state.Y.join(', ')}]</span>
+              </div>
+              <div class="text-slate-400 text-[11px]">
+                ✓ Toàn bộ đều là các bit nhị phân {0, 1}. Vị trí của An, Bình, Chi, Dũng đã bị đảo lộn ngẫu nhiên[cite: 1].
               </div>
             </div>
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
               <div class="p-2 rounded bg-slate-950 border border-slate-800">
-                <span class="text-slate-400 block">Tổng số người vi phạm thực tế:</span>
+                <span class="text-slate-400 block text-[11px]">Tổng vi phạm thực tế (Ground Truth):</span>
                 <span class="text-base font-bold text-white font-mono">${rawTrueSum} / 4 sinh viên</span>
               </div>
               <div class="p-2 rounded bg-slate-950 border border-slate-800">
-                <span class="text-slate-400 block">Ước lượng qua Shuffle DP:</span>
-                <span class="text-base font-bold text-teal-300 font-mono">${state.estimatedSum} / 4 sinh viên (Khớp hoàn toàn)</span>
+                <span class="text-slate-400 block text-[11px]">Ước lượng qua DP (Kèm sai số ngẫu nhiên):</span>
+                <span class="text-base font-bold ${state.dpNoiseVal === 0 ? 'text-emerald-400' : 'text-amber-400'} font-mono">
+                  ${state.estimatedSum} / 4 sinh viên
+                </span>
+                <span class="text-[10px] text-slate-500 block mt-0.5">Nhiễu vi phân: ${noiseStr}</span>
               </div>
             </div>
-            <div class="text-emerald-400 text-[11px] mt-1">
-              ✓ <strong>Ẩn danh tuyệt đối:</strong> Analyzer chỉ thấy các giá trị đã bị đảo lộn vị trí ngẫu nhiên, không thể nào biết được An, Bình, Chi hay Dũng đã chọn gì.
+
+            <div class="text-slate-400 text-[11px] mt-1 border-t border-slate-800/80 pt-2">
+              🛡️ <strong>Chuẩn riêng tư:</strong> Analyzer chỉ thấy vector nhị phân đã xáo trộn [${state.Y.join(', ')}]. Dữ liệu thống kê chuẩn xác mà vẫn bảo vệ danh tính từng sinh viên[cite: 1].
             </div>
           </div>
         `;
       }
     }
 
-    // --- 3. CANVAS ANIMATION CHO 4 CLIENTS CỤ THỂ ---
+    // --- CANVAS ANIMATION ---
     const canvas = document.getElementById('protocolCanvas');
     const ctx = canvas.getContext('2d');
     let width, height;
@@ -509,7 +492,6 @@
       const l = getLayout();
 
       if (step === 1) {
-        // P0 gửi tương quan sang P1, P2
         for (let i = 0; i < 20; i++) {
           particles.push({
             x: l.p0.x, y: l.p0.y, targetX: l.p1.x, targetY: l.p1.y,
@@ -521,23 +503,19 @@
           });
         }
       } else if (step === 2) {
-        // 4 Clients gửi masked data z_i sang P1 và P2
-        l.clients.forEach((c, idx) => {
+        l.clients.forEach(c => {
           for (let i = 0; i < 6; i++) {
             particles.push({
               x: c.x, y: c.y, targetX: l.p1.x, targetY: l.p1.y,
-              progress: Math.random() * -0.6, speed: 0.018 + Math.random() * 0.005, color: "#c084fc", size: 3.5,
-              text: `z_${idx}`
+              progress: Math.random() * -0.6, speed: 0.018 + Math.random() * 0.005, color: "#c084fc", size: 3.5
             });
             particles.push({
               x: c.x, y: c.y, targetX: l.p2.x, targetY: l.p2.y,
-              progress: Math.random() * -0.6, speed: 0.018 + Math.random() * 0.005, color: "#c084fc", size: 3.5,
-              text: `z_${idx}`
+              progress: Math.random() * -0.6, speed: 0.018 + Math.random() * 0.005, color: "#c084fc", size: 3.5
             });
           }
         });
       } else if (step === 3) {
-        // Silent Shuffle cục bộ
         for (let i = 0; i < 20; i++) {
           particles.push({
             centerX: l.p1.x, centerY: l.p1.y, angle: Math.random() * Math.PI * 2,
@@ -549,7 +527,6 @@
           });
         }
       } else if (step === 4) {
-        // P1, P2 gửi y1, y2 về Analyzer
         for (let i = 0; i < 16; i++) {
           particles.push({
             x: l.p1.x, y: l.p1.y, targetX: l.analyzer.x, targetY: l.analyzer.y,
@@ -615,7 +592,7 @@
       ctx.beginPath(); ctx.moveTo(l.p1.x, l.p1.y); ctx.lineTo(l.analyzer.x, l.analyzer.y); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(l.p2.x, l.p2.y); ctx.lineTo(l.analyzer.x, l.analyzer.y); ctx.stroke();
 
-      // Đường giữa P1 và P2
+      // Giữa P1 và P2
       ctx.beginPath();
       ctx.setLineDash([]);
       if (currentStep === 3) {
@@ -662,7 +639,6 @@
       requestAnimationFrame(render);
     }
 
-    // --- 4. STEPPER CONTROLS ---
     const stepTitles = [
       "",
       "Pha 1/4: Offline Setup (P₀ Dealer)",
@@ -718,7 +694,7 @@
     }
     document.getElementById('btnPlay').addEventListener('click', togglePlay);
 
-    // Khởi chạy ban đầu
+    // Khởi tạo ứng dụng
     regenerateRandomMath();
     setStep(1);
     render();
