@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Doppio (AMP-SDP) - Protocol Mechanism Visualizer</title>
+  <title>Doppio (AMP-SDP) - Mô Phỏng Tính Toán Số Học Thực Tế</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @keyframes pulseBarrier {
@@ -11,26 +11,107 @@
       50% { border-color: rgba(239, 68, 68, 0.9); box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
     }
     .barrier-alert { animation: pulseBarrier 1.5s infinite ease-in-out; }
-    canvas { image-rendering: -webkit-optimize-contrast; }
+    .math-font { font-family: 'Cambria Math', 'Times New Roman', serif; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-teal-500 selection:text-white">
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-teal-500 selection:text-white pb-12">
 
   <!-- HEADER -->
-  <header class="border-b border-slate-800 bg-slate-900/70 backdrop-blur sticky top-0 z-50 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-3 flex flex-wrap items-center justify-between gap-4">
     <div class="flex items-center gap-3">
-      <span class="px-2.5 py-1 rounded bg-teal-500/20 text-teal-300 border border-teal-500/40 text-xs font-mono font-bold">AMP-SDP</span>
-      <h1 class="text-lg font-bold tracking-tight text-white">Kiến Trúc & Giải Thuật Thực Thi Doppio (2+1 Server)</h1>
+      <span class="px-2.5 py-1 rounded bg-teal-500/20 text-teal-300 border border-teal-500/40 text-xs font-mono font-bold">DOPPIO / AMP-SDP</span>
+      <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">Mô Phỏng Tính Toán Số Học & Giao Thức Silent Shuffle</h1>
     </div>
     <div class="flex items-center gap-3 text-xs">
-      <span class="px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">Mô hình: <strong>Honest-but-Curious</strong></span>
-      <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono">Rust PoC: 22 Tests Passed</span>
+      <span class="px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">Trường hữu hạn: <strong class="text-teal-300 font-mono">𝔽₉₇ (p = 97)</strong></span>
+      <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono">22 Tests Passed</span>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto p-6 space-y-6">
+  <main class="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
 
-    <!-- THANH ĐIỀU KHIỂN TIẾN TRÌNH (STEPPER CONTROLS) -->
+    <!-- SECTION: BÀI TOÁN THỰC NGHIỆM CỤ THỂ -->
+    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[11px] font-bold uppercase">Bối cảnh bài toán</span>
+            <h2 class="text-base font-bold text-white">Khảo Sát Hành Vi Vi Phạm Thi Cử (4 Sinh Viên)</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+            Câu hỏi khảo sát nhạy cảm: <em>"Bạn đã từng mang tài liệu hoặc gian lận trong kỳ thi hay chưa?"</em> (<strong>1</strong>: Có, <strong>0</strong>: Không).
+            Nhà trường (Analyzer) cần biết chính xác tổng số người vi phạm với chuẩn vi phân (DP) mà <strong>không được biết</strong> lựa chọn của bất kỳ cá nhân nào.
+          </p>
+        </div>
+
+        <button id="btnRandomizeAll" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-950/40 shrink-0">
+          <span>🎲</span> Sinh dữ liệu ngẫu nhiên mới
+        </button>
+      </div>
+
+      <!-- 4 CLIENTS THỰC TẾ (CLICK ĐỂ ĐỔI 0/1) -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+        <!-- Client 1 -->
+        <div id="clientCard0" onclick="toggleClientInput(0)" class="cursor-pointer bg-slate-950 border-2 border-purple-500/60 hover:border-purple-400 p-3.5 rounded-xl transition-all">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-purple-300">Client 1 (An)</span>
+            <span class="text-[10px] text-slate-500 font-mono">Index 0</span>
+          </div>
+          <div class="mt-2 flex items-center justify-between">
+            <span class="text-xs text-slate-400">Giá trị <span class="math-font italic">x₀</span>:</span>
+            <span id="clientVal0" class="text-lg font-mono font-bold text-emerald-400">1 (Có)</span>
+          </div>
+          <span class="text-[10px] text-slate-500 block mt-1">Click để đổi 0/1</span>
+        </div>
+
+        <!-- Client 2 -->
+        <div id="clientCard1" onclick="toggleClientInput(1)" class="cursor-pointer bg-slate-950 border-2 border-purple-500/60 hover:border-purple-400 p-3.5 rounded-xl transition-all">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-purple-300">Client 2 (Bình)</span>
+            <span class="text-[10px] text-slate-500 font-mono">Index 1</span>
+          </div>
+          <div class="mt-2 flex items-center justify-between">
+            <span class="text-xs text-slate-400">Giá trị <span class="math-font italic">x₁</span>:</span>
+            <span id="clientVal1" class="text-lg font-mono font-bold text-rose-400">0 (Không)</span>
+          </div>
+          <span class="text-[10px] text-slate-500 block mt-1">Click để đổi 0/1</span>
+        </div>
+
+        <!-- Client 3 -->
+        <div id="clientCard2" onclick="toggleClientInput(2)" class="cursor-pointer bg-slate-950 border-2 border-purple-500/60 hover:border-purple-400 p-3.5 rounded-xl transition-all">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-purple-300">Client 3 (Chi)</span>
+            <span class="text-[10px] text-slate-500 font-mono">Index 2</span>
+          </div>
+          <div class="mt-2 flex items-center justify-between">
+            <span class="text-xs text-slate-400">Giá trị <span class="math-font italic">x₂</span>:</span>
+            <span id="clientVal2" class="text-lg font-mono font-bold text-emerald-400">1 (Có)</span>
+          </div>
+          <span class="text-[10px] text-slate-500 block mt-1">Click để đổi 0/1</span>
+        </div>
+
+        <!-- Client 4 -->
+        <div id="clientCard3" onclick="toggleClientInput(3)" class="cursor-pointer bg-slate-950 border-2 border-purple-500/60 hover:border-purple-400 p-3.5 rounded-xl transition-all">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-purple-300">Client 4 (Dũng)</span>
+            <span class="text-[10px] text-slate-500 font-mono">Index 3</span>
+          </div>
+          <div class="mt-2 flex items-center justify-between">
+            <span class="text-xs text-slate-400">Giá trị <span class="math-font italic">x₃</span>:</span>
+            <span id="clientVal3" class="text-lg font-mono font-bold text-emerald-400">1 (Có)</span>
+          </div>
+          <span class="text-[10px] text-slate-500 block mt-1">Click để đổi 0/1</span>
+        </div>
+      </div>
+
+      <!-- TỔNG GỐC CẦN ƯỚC LƯỢNG -->
+      <div class="mt-3 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800/80 flex justify-between items-center text-xs">
+        <span class="text-slate-400">Tổng thực tế bí mật cần bảo vệ (<span class="math-font italic">∑ xᵢ</span>):</span>
+        <span id="trueSumBadge" class="font-mono font-bold text-teal-300 text-sm">3 / 4 sinh viên (75.0%)</span>
+      </div>
+    </section>
+
+    <!-- STEPPER & ĐIỀU KHIỂN TIẾN TRÌNH -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
       <div class="flex items-center gap-2">
         <button id="btnPrev" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition">◀ Pha trước</button>
@@ -38,33 +119,32 @@
           <span id="playIcon">▶</span> <span id="playText">Tự động diễn hoạt</span>
         </button>
         <button id="btnNext" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition">Pha kế tiếp ▶</button>
-        <button id="btnReset" class="px-3 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-xs text-slate-400 border border-slate-800 transition">Đặt lại</button>
       </div>
 
       <div class="flex items-center gap-1.5 text-xs">
-        <span class="text-slate-400 mr-1">Trạng thái:</span>
-        <span id="stepBadge" class="px-3 py-1 rounded-md bg-teal-500/10 text-teal-300 border border-teal-500/30 font-mono font-bold">Pha 1/4: Offline Setup</span>
+        <span class="text-slate-400">Pha hiện tại:</span>
+        <span id="stepBadge" class="px-3 py-1 rounded-md bg-teal-500/10 text-teal-300 border border-teal-500/30 font-mono font-bold">Pha 1/4: Offline Setup (P₀ Dealer)</span>
       </div>
     </div>
 
-    <!-- 4 CARDS TIẾN TRÌNH THEO MÃ NGUỒN BÀI BÁO -->
+    <!-- 4 CARDS TIẾN TRÌNH -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
       <div id="card1" class="cursor-pointer p-4 rounded-xl border border-teal-500 bg-teal-500/10 transition-all" onclick="setStep(1)">
         <div class="flex items-center justify-between mb-1">
           <span class="text-[10px] font-mono font-bold text-teal-400 uppercase">Pha 1: Offline</span>
-          <span class="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 font-mono">Server P₀</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 font-mono">P₀ Dealer</span>
         </div>
-        <h3 class="text-sm font-bold text-white">Sinh Correlated Randomness</h3>
-        <p class="text-xs text-slate-400 mt-1">P₀ tạo ma trận hoán vị [Π] và vector nhiễu vi phân [E], tách share phân phối trước cho P₁, P₂.</p>
+        <h3 class="text-xs font-bold text-white">Sinh Correlated Randomness</h3>
+        <p class="text-[11px] text-slate-400 mt-1">P₀ sinh hoán vị ngẫu nhiên π(4), mặt nạ M và vector nhiễu E. Tách share gửi P₁, P₂.</p>
       </div>
 
       <div id="card2" class="cursor-pointer p-4 rounded-xl border border-slate-800 bg-slate-900/60 opacity-60 transition-all" onclick="setStep(2)">
         <div class="flex items-center justify-between mb-1">
           <span class="text-[10px] font-mono font-bold text-slate-400 uppercase">Pha 2: Online</span>
-          <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">Clients</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono">4 Clients</span>
         </div>
-        <h3 class="text-sm font-bold text-white">Additive Secret Sharing</h3>
-        <p class="text-xs text-slate-400 mt-1">Client mã hóa dữ liệu $x_i = s_i^{(1)} + s_i^{(2)} \pmod p$. Gửi phân tán 16 bytes về 2 server.</p>
+        <h3 class="text-xs font-bold text-white">Masked Input Submission</h3>
+        <p class="text-[11px] text-slate-400 mt-1">Mỗi client dùng mặt nạ Mᵢ để làm mù: <span class="math-font italic">zᵢ = xᵢ − Mᵢ</span> (mod 97), gửi đồng thời lên 2 server.</p>
       </div>
 
       <div id="card3" class="cursor-pointer p-4 rounded-xl border border-slate-800 bg-slate-900/60 opacity-60 transition-all" onclick="setStep(3)">
@@ -72,8 +152,8 @@
           <span class="text-[10px] font-mono font-bold text-slate-400 uppercase">Pha 3: Online</span>
           <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">P₁ & P₂</span>
         </div>
-        <h3 class="text-sm font-bold text-white">Silent Shuffling</h3>
-        <p class="text-xs text-slate-400 mt-1">Hai server tự xáo trộn & làm mù cục bộ. Hoàn toàn <strong>không gửi gói tin nào</strong> qua lại.</p>
+        <h3 class="text-xs font-bold text-white">Silent Shuffling</h3>
+        <p class="text-[11px] text-slate-400 mt-1">P₁ và P₂ nhân ma trận & cộng nhiễu cục bộ mod 97. <strong>0 byte trao đổi giữa P₁ và P₂</strong>.</p>
       </div>
 
       <div id="card4" class="cursor-pointer p-4 rounded-xl border border-slate-800 bg-slate-900/60 opacity-60 transition-all" onclick="setStep(4)">
@@ -81,65 +161,315 @@
           <span class="text-[10px] font-mono font-bold text-slate-400 uppercase">Pha 4: Output</span>
           <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">Analyzer</span>
         </div>
-        <h3 class="text-sm font-bold text-white">Reconstruction</h3>
-        <p class="text-xs text-slate-400 mt-1">Cộng gộp $y^{(1)} + y^{(2)}$ để thu được kết quả xáo trộn kèm nhiễu $(\epsilon, \delta)$-DP chuẩn xác.</p>
+        <h3 class="text-xs font-bold text-white">Reconstruction</h3>
+        <p class="text-[11px] text-slate-400 mt-1">Analyzer cộng <span class="math-font italic">y⁽¹⁾ + y⁽²⁾</span> để thu kết quả đã xáo trộn và ước lượng tổng vi phân.</p>
       </div>
     </div>
 
-    <!-- CANVAS MÔ PHỎNG ĐỘNG HỌC MẠNG VÀ CÁC THỰC THỂ -->
-    <div class="relative bg-slate-950 border border-slate-800 rounded-2xl p-4 h-[440px] overflow-hidden shadow-2xl">
+    <!-- CANVAS DIỄN HOẠT MẠNG 4 CLIENTS VÀ CÁC SERVER -->
+    <div class="relative bg-slate-950 border border-slate-800 rounded-2xl p-4 h-[420px] overflow-hidden shadow-2xl">
       <canvas id="protocolCanvas" class="w-full h-full block"></canvas>
 
-      <!-- BANNER CẢNH BÁO SILENT SHUFFLE Ở BƯỚC 3 -->
-      <div id="silentBarrier" class="hidden absolute top-[52%] left-1/2 -translate-x-1/2 -translate-y-1/2 border-2 border-dashed border-rose-500 bg-rose-950/80 backdrop-blur-md px-5 py-2.5 rounded-xl barrier-alert text-center z-10 pointer-events-none">
+      <!-- RÀO CẢN SILENT SHUFFLE -->
+      <div id="silentBarrier" class="hidden absolute top-[52%] left-1/2 -translate-x-1/2 -translate-y-1/2 border-2 border-dashed border-rose-500 bg-rose-950/85 backdrop-blur-md px-5 py-2.5 rounded-xl barrier-alert text-center z-10 pointer-events-none">
         <div class="flex items-center gap-2 justify-center text-rose-400 font-mono font-bold text-xs uppercase tracking-wide">
           <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
-          Đường truyền thời gian thực bị khóa (Zero Online Traffic)
+          Đường truyền mạng bị ngắt (Silent: 0 byte trao đổi)
         </div>
-        <p class="text-[11px] text-slate-300 mt-0.5">P₁ và P₂ độc lập nhân ma trận cục bộ: $y^{(j)} = \Pi^{(j)} \cdot s^{(j)} + E^{(j)}$</p>
+        <p class="text-xs text-slate-200 mt-0.5 font-mono">
+          P₁ và P₂ tính toán độc lập trên bộ nhớ cục bộ mod 97
+        </p>
       </div>
     </div>
 
-    <!-- STATE & MEMORY INSPECTOR (BẢNG SOI BỘ NHỚ THEO PHA) -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      
-      <!-- Cột 1: Giải thích cơ chế toán học -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 lg:col-span-2">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="w-2 h-2 rounded-full bg-teal-400"></span>
-          <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Bản chất toán học đang thực thi (Inside the Protocol)</h4>
+    <!-- BẢNG SOI DỮ LIỆU & BỘ NHỚ SỐ HỌC (LIVE DATA INSPECTOR) -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider">Bảng Soi Dữ Liệu & Phép Tính Số Học (𝔽₉₇ Execution State)</h3>
         </div>
-        <div id="mathExplanation" class="text-xs text-slate-300 leading-relaxed font-mono bg-slate-950 p-3.5 rounded-lg border border-slate-800/80 space-y-1.5">
-          <!-- Nội dung thay đổi động theo bước -->
-        </div>
+        <span class="text-xs font-mono text-slate-400">Tất cả phép toán đều thực thi mod 97</span>
       </div>
 
-      <!-- Cột 2: Bảng đo thông số tức thời của pha -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-        <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Thông số kỹ thuật tại Pha này</h4>
-        
-        <div class="space-y-2 text-xs">
-          <div class="flex justify-between p-2 rounded bg-slate-950 border border-slate-800/60">
-            <span class="text-slate-400">Băng thông Client:</span>
-            <span id="metricClient" class="font-mono font-bold text-teal-400">0 Bytes (Idle)</span>
-          </div>
-          <div class="flex justify-between p-2 rounded bg-slate-950 border border-slate-800/60">
-            <span class="text-slate-400">Giao tiếp P₁ ↔ P₂:</span>
-            <span id="metricServer" class="font-mono font-bold text-emerald-400">0 Bytes</span>
-          </div>
-          <div class="flex justify-between p-2 rounded bg-slate-950 border border-slate-800/60">
-            <span class="text-slate-400">Độ phức tạp tính toán:</span>
-            <span id="metricCompute" class="font-mono font-bold text-amber-400">O(N²) trong PoC Minimal</span>
-          </div>
-        </div>
+      <!-- VÙNG NỘI DUNG TÍNH TOÁN THEO PHA -->
+      <div id="inspectorContent" class="text-xs font-mono leading-relaxed space-y-3">
+        <!-- Render động từ JavaScript -->
       </div>
-
     </div>
 
   </main>
 
   <script>
-    // --- THIẾT LẬP CANVAS & DỮ LIỆU ĐỘNG ---
+    // --- 1. TOÁN HỌC TRÊN TRƯỜNG HỮU HẠN F_97 ---
+    const PRIME = 97;
+
+    function modP(n) {
+      return ((n % PRIME) + PRIME) % PRIME;
+    }
+
+    // Trạng thái dữ liệu của 4 Client
+    let clientInputs = [1, 0, 1, 1]; // An:1, Bình:0, Chi:1, Dũng:1
+
+    // Trạng thái số học ngẫu nhiên
+    let state = {
+      perm: [2, 0, 3, 1], // Hoán vị ngẫu nhiên pi của [0,1,2,3]
+      masks: [14, 45, 82, 33], // Mặt nạ M
+      masks_s1: [10, 20, 50, 12],
+      masks_s2: [4, 25, 32, 21],
+      permMatrix: [], // 4x4
+      permMatrix_s1: [],
+      permMatrix_s2: [],
+      W: [], // W = Perm * M
+      W_s1: [],
+      W_s2: [],
+      noise: [1, 0, 96, 0], // Nhiễu vi phân (96 tương đương -1 mod 97)
+      noise_s1: [40, 15, 80, 5],
+      noise_s2: [],
+      z: [], // Masked inputs
+      y1: [], // P1 output
+      y2: [], // P2 output
+      Y: [], // Final reconstructed
+      estimatedSum: 0
+    };
+
+    // Sinh lại toàn bộ ngẫu nhiên
+    function regenerateRandomMath() {
+      // 1. Sinh hoán vị ngẫu nhiên
+      let p = [0, 1, 2, 3];
+      for (let i = p.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [p[i], p[j]] = [p[j], p[i]];
+      }
+      state.perm = p;
+
+      // Ma trận hoán vị 4x4
+      state.permMatrix = Array(4).fill(0).map(() => Array(4).fill(0));
+      for (let i = 0; i < 4; i++) {
+        state.permMatrix[i][state.perm[i]] = 1;
+      }
+
+      // Additive split cho ma trận hoán vị
+      state.permMatrix_s1 = Array(4).fill(0).map(() => Array(4).fill(0));
+      state.permMatrix_s2 = Array(4).fill(0).map(() => Array(4).fill(0));
+      for (let i = 0; i < 4; i++) {
+        for (let j = 0; j < 4; j++) {
+          const r = Math.floor(Math.random() * PRIME);
+          state.permMatrix_s1[i][j] = r;
+          state.permMatrix_s2[i][j] = modP(state.permMatrix[i][j] - r);
+        }
+      }
+
+      // 2. Sinh mặt nạ M và additive shares
+      state.masks = [];
+      state.masks_s1 = [];
+      state.masks_s2 = [];
+      for (let i = 0; i < 4; i++) {
+        const m = Math.floor(Math.random() * PRIME);
+        const m1 = Math.floor(Math.random() * PRIME);
+        const m2 = modP(m - m1);
+        state.masks.push(m);
+        state.masks_s1.push(m1);
+        state.masks_s2.push(m2);
+      }
+
+      // W = Perm * M (mod 97) -> W[i] = M[perm[i]]
+      state.W = [];
+      state.W_s1 = [];
+      state.W_s2 = [];
+      for (let i = 0; i < 4; i++) {
+        const wVal = state.masks[state.perm[i]];
+        const w1 = Math.floor(Math.random() * PRIME);
+        const w2 = modP(wVal - w1);
+        state.W.push(wVal);
+        state.W_s1.push(w1);
+        state.W_s2.push(w2);
+      }
+
+      // 3. Sinh vector nhiễu DP (nhiễu nhỏ: -1, 0, 1)
+      const possibleNoises = [0, 1, PRIME - 1, 0];
+      state.noise = [];
+      state.noise_s1 = [];
+      state.noise_s2 = [];
+      for (let i = 0; i < 4; i++) {
+        const nVal = possibleNoises[Math.floor(Math.random() * possibleNoises.length)];
+        const n1 = Math.floor(Math.random() * PRIME);
+        const n2 = modP(nVal - n1);
+        state.noise.push(nVal);
+        state.noise_s1.push(n1);
+        state.noise_s2.push(n2);
+      }
+
+      // 4. Tính toán Online
+      // z = x - M (mod 97)
+      state.z = [];
+      for (let i = 0; i < 4; i++) {
+        state.z.push(modP(clientInputs[i] - state.masks[i]));
+      }
+
+      // P1: y1 = Perm_s1 * z + W_s1 + Noise_s1 (mod 97)
+      // P2: y2 = Perm_s2 * z + W_s2 + Noise_s2 (mod 97)
+      state.y1 = [0, 0, 0, 0];
+      state.y2 = [0, 0, 0, 0];
+      for (let i = 0; i < 4; i++) {
+        let sum1 = 0;
+        let sum2 = 0;
+        for (let j = 0; j < 4; j++) {
+          sum1 = modP(sum1 + state.permMatrix_s1[i][j] * state.z[j]);
+          sum2 = modP(sum2 + state.permMatrix_s2[i][j] * state.z[j]);
+        }
+        state.y1[i] = modP(sum1 + state.W_s1[i] + state.noise_s1[i]);
+        state.y2[i] = modP(sum2 + state.W_s2[i] + state.noise_s2[i]);
+      }
+
+      // Analyzer: Y = y1 + y2 (mod 97)
+      state.Y = [];
+      for (let i = 0; i < 4; i++) {
+        state.Y.push(modP(state.y1[i] + state.y2[i]));
+      }
+
+      // Ước lượng tổng
+      let totalNoise = 0;
+      state.noise.forEach(n => {
+        totalNoise += (n === PRIME - 1 ? -1 : n);
+      });
+      let sumReconstructed = 0;
+      state.Y.forEach(y => {
+        sumReconstructed += (y === PRIME - 1 ? -1 : y);
+      });
+      state.estimatedSum = sumReconstructed - totalNoise;
+
+      updateUI();
+    }
+
+    function toggleClientInput(idx) {
+      clientInputs[idx] = clientInputs[idx] === 1 ? 0 : 1;
+      regenerateRandomMath();
+    }
+
+    document.getElementById('btnRandomizeAll').addEventListener('click', () => {
+      clientInputs = [
+        Math.random() > 0.5 ? 1 : 0,
+        Math.random() > 0.5 ? 1 : 0,
+        Math.random() > 0.5 ? 1 : 0,
+        Math.random() > 0.5 ? 1 : 0
+      ];
+      regenerateRandomMath();
+    });
+
+    // Cập nhật giao diện bài toán
+    function updateUI() {
+      for (let i = 0; i < 4; i++) {
+        const el = document.getElementById(`clientVal${i}`);
+        if (clientInputs[i] === 1) {
+          el.innerText = "1 (Có)";
+          el.className = "text-lg font-mono font-bold text-emerald-400";
+        } else {
+          el.innerText = "0 (Không)";
+          el.className = "text-lg font-mono font-bold text-rose-400";
+        }
+      }
+
+      const sum = clientInputs.reduce((a, b) => a + b, 0);
+      document.getElementById('trueSumBadge').innerText = `${sum} / 4 sinh viên (${(sum/4*100).toFixed(1)}%)`;
+
+      renderInspector();
+    }
+
+    // --- 2. RENDER LIVE DATA INSPECTOR (TRỌNG TÂM CỦA BẠN) ---
+    function renderInspector() {
+      const box = document.getElementById('inspectorContent');
+      const names = ["An", "Bình", "Chi", "Dũng"];
+
+      if (currentStep === 1) {
+        box.innerHTML = `
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+            <span class="text-teal-400 font-bold block">[P₀ Dealer] Sinh tương quan ngẫu nhiên ở pha chuẩn bị Offline:</span>
+            <div>• <strong>Hoán vị ngẫu nhiên π:</strong> [${state.perm.map(p => `Vị trí ${p}`).join(', ')}]
+              <span class="text-slate-500 block text-[11px] mt-0.5">→ Client 0 (${names[0]}) sẽ chuyển sang vị trí mới: ${state.perm[0]}</span>
+              <span class="text-slate-500 block text-[11px]">→ Client 1 (${names[1]}) sẽ chuyển sang vị trí mới: ${state.perm[1]}</span>
+            </div>
+            <div>• <strong>Mặt nạ bảo vệ M:</strong> [${state.masks.join(', ')}]
+              <span class="text-slate-400 block text-[11px] mt-0.5">Tách thành: M⁽¹⁾ = [${state.masks_s1.join(', ')}] cho P₁ và M⁽²⁾ = [${state.masks_s2.join(', ')}] cho P₂ (Tổng mod 97 = M)</span>
+            </div>
+            <div>• <strong>Vector nhiễu vi phân (ε, δ)-DP E:</strong> [${state.noise.map(n => n === 96 ? '-1' : n).join(', ')}]
+              <span class="text-slate-400 block text-[11px] mt-0.5">Được chia sẻ bí mật thành E⁽¹⁾ gửi P₁ và E⁽²⁾ gửi P₂</span>
+            </div>
+            <div class="text-emerald-400 text-[11px]">✓ Toàn bộ tính toán nặng O(N²) được giải quyết trước. P₁, P₂ nhận sẵn correlated randomness.</div>
+          </div>
+        `;
+      } else if (currentStep === 2) {
+        box.innerHTML = `
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+            <span class="text-purple-400 font-bold block">[4 Clients] Tính toán làm mù dữ liệu (Masked Inputs) tại từng thiết bị:</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+              ${clientInputs.map((val, i) => `
+                <div class="p-2 rounded bg-slate-900 border border-slate-800">
+                  <span class="text-white font-bold block">Client ${i+1} (${names[i]}):</span>
+                  <span>Dữ liệu gốc x_${i} = ${val}</span><br>
+                  <span>Mặt nạ M_${i} = ${state.masks[i]}</span><br>
+                  <span class="text-teal-300 font-bold">Gửi z_${i} = (${val} − ${state.masks[i]}) mod 97 = ${state.z[i]}</span>
+                </div>
+              `).join('')}
+            </div>
+            <div class="text-slate-400 text-[11px] mt-2">
+              🛡️ <strong>Bảo mật:</strong> Giá trị z = [${state.z.join(', ')}] phân phối ngẫu nhiên đều trên 𝔽₉₇. Hai server chỉ nhìn thấy số ngẫu nhiên, không thể đoán được x là 0 hay 1.
+            </div>
+          </div>
+        `;
+      } else if (currentStep === 3) {
+        box.innerHTML = `
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+            <span class="text-emerald-400 font-bold block">[Computing Servers P₁ & P₂] Thực thi Silent Shuffling:</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+              <div class="p-2.5 rounded bg-slate-900 border border-slate-800">
+                <span class="text-teal-300 font-bold block">Server 1 (P₁) tính cục bộ:</span>
+                <span class="text-slate-400 block text-[11px] mt-1">y⁽¹⁾ = Π⁽¹⁾ · z + W⁽¹⁾ + E⁽¹⁾ (mod 97)</span>
+                <div class="text-sm font-bold text-white font-mono mt-1">y⁽¹⁾ = [${state.y1.join(', ')}]</div>
+              </div>
+              <div class="p-2.5 rounded bg-slate-900 border border-slate-800">
+                <span class="text-teal-300 font-bold block">Server 2 (P₂) tính cục bộ:</span>
+                <span class="text-slate-400 block text-[11px] mt-1">y⁽²⁾ = Π⁽²⁾ · z + W⁽²⁾ + E⁽²⁾ (mod 97)</span>
+                <div class="text-sm font-bold text-white font-mono mt-1">y⁽²⁾ = [${state.y2.join(', ')}]</div>
+              </div>
+            </div>
+            <div class="p-2 rounded bg-rose-950/30 border border-rose-500/30 text-rose-300 text-[11px] mt-2">
+              ⚡ <strong>TÍNH CHẤT SILENT:</strong> Không có tin nhắn nào trao đổi giữa P₁ và P₂ (0 bytes). Tránh hoàn toàn độ trễ mạng trong lúc người dùng gửi dữ liệu!
+            </div>
+          </div>
+        `;
+      } else if (currentStep === 4) {
+        const rawTrueSum = clientInputs.reduce((a, b) => a + b, 0);
+        box.innerHTML = `
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+            <span class="text-amber-400 font-bold block">[Analyzer] Tái tạo kết quả tổng hợp ẩn danh (Reconstruction):</span>
+            <div class="p-2.5 rounded bg-slate-900 border border-slate-800 space-y-1">
+              <div>Cộng gộp: <strong>Y = y⁽¹⁾ + y⁽²⁾ (mod 97)</strong></div>
+              <div class="text-sm font-bold text-teal-300 font-mono">Y = [${state.Y.map(y => y === 96 ? '-1' : y).join(', ')}]</div>
+              <div class="text-slate-400 text-[11px] mt-1">
+                Kiểm chứng lý thuyết: Y tương đương với tập dữ liệu gốc sau khi hoán vị qua π và cộng vector nhiễu E!
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+              <div class="p-2 rounded bg-slate-950 border border-slate-800">
+                <span class="text-slate-400 block">Tổng số người vi phạm thực tế:</span>
+                <span class="text-base font-bold text-white font-mono">${rawTrueSum} / 4 sinh viên</span>
+              </div>
+              <div class="p-2 rounded bg-slate-950 border border-slate-800">
+                <span class="text-slate-400 block">Ước lượng qua Shuffle DP:</span>
+                <span class="text-base font-bold text-teal-300 font-mono">${state.estimatedSum} / 4 sinh viên (Khớp hoàn toàn)</span>
+              </div>
+            </div>
+            <div class="text-emerald-400 text-[11px] mt-1">
+              ✓ <strong>Ẩn danh tuyệt đối:</strong> Analyzer chỉ thấy các giá trị đã bị đảo lộn vị trí ngẫu nhiên, không thể nào biết được An, Bình, Chi hay Dũng đã chọn gì.
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // --- 3. CANVAS ANIMATION CHO 4 CLIENTS CỤ THỂ ---
     const canvas = document.getElementById('protocolCanvas');
     const ctx = canvas.getContext('2d');
     let width, height;
@@ -159,143 +489,114 @@
     let playTimer = null;
     let particles = [];
 
-    // Tọa độ các thực thể
     function getLayout() {
       return {
-        p0: { x: width * 0.50, y: height * 0.14, label: "Server Phụ Trợ (P₀)", role: "Offline Dealer", color: "#38bdf8" },
+        p0: { x: width * 0.50, y: height * 0.14, label: "Server Phụ Trợ (P₀)", role: "Dealer Offline", color: "#38bdf8" },
         clients: [
-          { x: width * 0.12, y: height * 0.36, label: "Client 1", val: "x₁ = 1", color: "#c084fc" },
-          { x: width * 0.12, y: height * 0.54, label: "Client 2", val: "x₂ = 0", color: "#c084fc" },
-          { x: width * 0.12, y: height * 0.72, label: "Client N", val: "x_n = 1", color: "#c084fc" }
+          { x: width * 0.14, y: height * 0.28, label: "An (SV 1)", val: `x₀=${clientInputs[0]}`, color: "#c084fc" },
+          { x: width * 0.14, y: height * 0.44, label: "Bình (SV 2)", val: `x₁=${clientInputs[1]}`, color: "#c084fc" },
+          { x: width * 0.14, y: height * 0.60, label: "Chi (SV 3)", val: `x₂=${clientInputs[2]}`, color: "#c084fc" },
+          { x: width * 0.14, y: height * 0.76, label: "Dũng (SV 4)", val: `x₃=${clientInputs[3]}`, color: "#c084fc" }
         ],
-        p1: { x: width * 0.52, y: height * 0.42, label: "Computing Server 1 (P₁)", role: "Online Processor", color: "#14b8a6" },
-        p2: { x: width * 0.52, y: height * 0.74, label: "Computing Server 2 (P₂)", role: "Online Processor", color: "#14b8a6" },
-        analyzer: { x: width * 0.88, y: height * 0.58, label: "Analyzer / Curator", role: "Reconstruction", color: "#f59e0b" }
+        p1: { x: width * 0.54, y: height * 0.42, label: "Computing Server 1 (P₁)", role: "Online Node", color: "#14b8a6" },
+        p2: { x: width * 0.54, y: height * 0.74, label: "Computing Server 2 (P₂)", role: "Online Node", color: "#14b8a6" },
+        analyzer: { x: width * 0.88, y: height * 0.58, label: "Analyzer (Trường ĐH)", role: "Reconstruction", color: "#f59e0b" }
       };
     }
 
-    // Sinh luồng hạt tương ứng từng pha
     function initParticles(step) {
       particles = [];
       const l = getLayout();
 
       if (step === 1) {
-        // P0 gửi tương quan [Π] và [E] sang P1 và P2
+        // P0 gửi tương quan sang P1, P2
         for (let i = 0; i < 20; i++) {
           particles.push({
-            x: l.p0.x, y: l.p0.y,
-            targetX: l.p1.x, targetY: l.p1.y,
-            progress: Math.random() * -0.6,
-            speed: 0.012 + Math.random() * 0.008,
-            color: "#38bdf8", size: 4
+            x: l.p0.x, y: l.p0.y, targetX: l.p1.x, targetY: l.p1.y,
+            progress: Math.random() * -0.5, speed: 0.015 + Math.random() * 0.005, color: "#38bdf8", size: 4
           });
           particles.push({
-            x: l.p0.x, y: l.p0.y,
-            targetX: l.p2.x, targetY: l.p2.y,
-            progress: Math.random() * -0.6,
-            speed: 0.012 + Math.random() * 0.008,
-            color: "#38bdf8", size: 4
+            x: l.p0.x, y: l.p0.y, targetX: l.p2.x, targetY: l.p2.y,
+            progress: Math.random() * -0.5, speed: 0.015 + Math.random() * 0.005, color: "#38bdf8", size: 4
           });
         }
       } else if (step === 2) {
-        // Clients gửi 2 mảnh shares về P1 và P2
-        l.clients.forEach(c => {
-          for (let i = 0; i < 8; i++) {
+        // 4 Clients gửi masked data z_i sang P1 và P2
+        l.clients.forEach((c, idx) => {
+          for (let i = 0; i < 6; i++) {
             particles.push({
-              x: c.x, y: c.y,
-              targetX: l.p1.x, targetY: l.p1.y,
-              progress: Math.random() * -0.8,
-              speed: 0.016 + Math.random() * 0.006,
-              color: "#c084fc", size: 3.5
+              x: c.x, y: c.y, targetX: l.p1.x, targetY: l.p1.y,
+              progress: Math.random() * -0.6, speed: 0.018 + Math.random() * 0.005, color: "#c084fc", size: 3.5,
+              text: `z_${idx}`
             });
             particles.push({
-              x: c.x, y: c.y,
-              targetX: l.p2.x, targetY: l.p2.y,
-              progress: Math.random() * -0.8,
-              speed: 0.016 + Math.random() * 0.006,
-              color: "#c084fc", size: 3.5
+              x: c.x, y: c.y, targetX: l.p2.x, targetY: l.p2.y,
+              progress: Math.random() * -0.6, speed: 0.018 + Math.random() * 0.005, color: "#c084fc", size: 3.5,
+              text: `z_${idx}`
             });
           }
         });
       } else if (step === 3) {
-        // Silent Shuffle: Các share quay vòng độc lập cục bộ trong P1 và P2
-        for (let i = 0; i < 24; i++) {
+        // Silent Shuffle cục bộ
+        for (let i = 0; i < 20; i++) {
           particles.push({
-            centerX: l.p1.x, centerY: l.p1.y,
-            angle: Math.random() * Math.PI * 2,
-            radius: 18 + Math.random() * 26,
-            speed: 0.035,
-            color: "#2dd4bf", size: 3.5, isOrbit: true
+            centerX: l.p1.x, centerY: l.p1.y, angle: Math.random() * Math.PI * 2,
+            radius: 18 + Math.random() * 24, speed: 0.035, color: "#2dd4bf", size: 3.5, isOrbit: true
           });
           particles.push({
-            centerX: l.p2.x, centerY: l.p2.y,
-            angle: Math.random() * Math.PI * 2,
-            radius: 18 + Math.random() * 26,
-            speed: -0.035,
-            color: "#2dd4bf", size: 3.5, isOrbit: true
+            centerX: l.p2.x, centerY: l.p2.y, angle: Math.random() * Math.PI * 2,
+            radius: 18 + Math.random() * 24, speed: -0.035, color: "#2dd4bf", size: 3.5, isOrbit: true
           });
         }
       } else if (step === 4) {
-        // Gửi kết quả gộp về Analyzer
-        for (let i = 0; i < 18; i++) {
+        // P1, P2 gửi y1, y2 về Analyzer
+        for (let i = 0; i < 16; i++) {
           particles.push({
-            x: l.p1.x, y: l.p1.y,
-            targetX: l.analyzer.x, targetY: l.analyzer.y,
-            progress: Math.random() * -0.5,
-            speed: 0.018 + Math.random() * 0.006,
-            color: "#f59e0b", size: 4
+            x: l.p1.x, y: l.p1.y, targetX: l.analyzer.x, targetY: l.analyzer.y,
+            progress: Math.random() * -0.5, speed: 0.018 + Math.random() * 0.005, color: "#f59e0b", size: 4
           });
           particles.push({
-            x: l.p2.x, y: l.p2.y,
-            targetX: l.analyzer.x, targetY: l.analyzer.y,
-            progress: Math.random() * -0.5,
-            speed: 0.018 + Math.random() * 0.006,
-            color: "#f59e0b", size: 4
+            x: l.p2.x, y: l.p2.y, targetX: l.analyzer.x, targetY: l.analyzer.y,
+            progress: Math.random() * -0.5, speed: 0.018 + Math.random() * 0.005, color: "#f59e0b", size: 4
           });
         }
       }
     }
 
-    // Vẽ từng node
     function renderNode(n, isLarge = false, hasVal = false) {
       ctx.save();
-      const r = isLarge ? 30 : 20;
+      const r = isLarge ? 28 : 18;
 
-      // Glow viền
       ctx.fillStyle = n.color + "18";
       ctx.strokeStyle = n.color;
-      ctx.lineWidth = 1.8;
+      ctx.lineWidth = 1.6;
       ctx.beginPath();
       ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
-      // Text tiêu đề
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 11px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(n.label, n.x, n.y - (r + 8));
+      ctx.fillText(n.label, n.x, n.y - (r + 7));
 
-      // Text vai trò hoặc giá trị
       if (n.role) {
         ctx.fillStyle = "#94a3b8";
         ctx.font = "9px monospace";
-        ctx.fillText(n.role, n.x, n.y + r + 14);
+        ctx.fillText(n.role, n.x, n.y + r + 13);
       }
       if (hasVal && n.val) {
         ctx.fillStyle = "#c084fc";
-        ctx.font = "bold 10px monospace";
-        ctx.fillText(n.val, n.x, n.y + 4);
+        ctx.font = "bold 9px monospace";
+        ctx.fillText(n.val, n.x, n.y + 3);
       }
       ctx.restore();
     }
 
-    // Vòng lặp Render Canvas
     function render() {
       ctx.clearRect(0, 0, width, height);
       const l = getLayout();
 
-      // Đường dây nối mạng
       ctx.setLineDash([4, 4]);
       ctx.strokeStyle = "#334155";
       ctx.lineWidth = 1;
@@ -314,7 +615,7 @@
       ctx.beginPath(); ctx.moveTo(l.p1.x, l.p1.y); ctx.lineTo(l.analyzer.x, l.analyzer.y); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(l.p2.x, l.p2.y); ctx.lineTo(l.analyzer.x, l.analyzer.y); ctx.stroke();
 
-      // Đường liên kết giữa P1 và P2 (Có hiển thị trạng thái chặn ở bước 3)
+      // Đường giữa P1 và P2
       ctx.beginPath();
       ctx.setLineDash([]);
       if (currentStep === 3) {
@@ -324,18 +625,17 @@
         ctx.strokeStyle = "#1e293b";
         ctx.lineWidth = 1;
       }
-      ctx.moveTo(l.p1.x, l.p1.y + 32);
-      ctx.lineTo(l.p2.x, l.p2.y - 32);
+      ctx.moveTo(l.p1.x, l.p1.y + 30);
+      ctx.lineTo(l.p2.x, l.p2.y - 30);
       ctx.stroke();
 
-      // Vẽ Nodes
       renderNode(l.p0, true);
       l.clients.forEach(c => renderNode(c, false, true));
       renderNode(l.p1, true);
       renderNode(l.p2, true);
       renderNode(l.analyzer, true);
 
-      // Cập nhật và vẽ hạt
+      // Cập nhật hạt
       particles.forEach(p => {
         if (p.isOrbit) {
           p.angle += p.speed;
@@ -362,63 +662,19 @@
       requestAnimationFrame(render);
     }
 
-    // NỘI DUNG GIẢI THÍCH TOÁN HỌC & THÔNG SỐ THEO PHA
-    const phaseData = {
-      1: {
-        title: "Pha 1/4: Offline Setup (P₀ Dealer)",
-        math: [
-          "> [P₀] Sinh hoán vị ngẫu nhiên π: Biểu diễn dưới dạng ma trận hoán vị Π ∈ {0,1}^(N×N)",
-          "> [P₀] Tách bí mật ma trận: Π = [Π]₁ + [Π]₂ (mod p)",
-          "> [P₀] Sinh vector nhiễu bảo đảm (ε, δ)-DP: E = [E]₁ + [E]₂ (mod p)",
-          "> Phân phối [Π]₁, [E]₁ cho Server P₁ và [Π]₂, [E]₂ cho Server P₂ qua kênh bảo mật nội bộ."
-        ],
-        clientMetric: "0 Bytes (Chưa tham gia)",
-        serverMetric: "Offline Correlated Sync",
-        computeMetric: "O(N²) sinh ma trận [Π]"
-      },
-      2: {
-        title: "Pha 2/4: Online Client Submission",
-        math: [
-          "> Mỗi Client i sở hữu bit dữ liệu bí mật x_i ∈ {0, 1}",
-          "> Client sinh ngẫu nhiên s_i^(1) ∈ F_p, tính s_i^(2) = x_i - s_i^(1) (mod p)",
-          "> Gửi s_i^(1) cho P₁ và s_i^(2) cho P₂ qua đường truyền mạng công cộng.",
-          "> BẢO MẬT: Mỗi server chỉ nhận một số ngẫu nhiên phân phối đều, không thể đoán được x_i."
-        ],
-        clientMetric: "16 Bytes (2 phần tử F_p 64-bit)",
-        serverMetric: "0 Bytes (Chỉ nhận từ Client)",
-        computeMetric: "O(1) mỗi client (Cực nhẹ)"
-      },
-      3: {
-        title: "Pha 3/4: Silent Shuffling & Randomization",
-        math: [
-          "> Server P₁ tính tích cục bộ: y^(1) = [Π]₁ · s^(1) + [E]₁ (mod p)",
-          "> Server P₂ tính tích cục bộ: y^(2) = [Π]₂ · s^(2) + [E]₂ (mod p)",
-          "> TÍNH CHẤT SILENT: Không có bất kỳ gói tin mạng nào trao đổi giữa P₁ và P₂!",
-          "> Thứ tự dữ liệu được xáo trộn ngầm và làm mù ngay trong không gian chia sẻ bí mật."
-        ],
-        clientMetric: "0 Bytes (Đã ngắt kết nối)",
-        serverMetric: "0 Bytes (SILENT SHUFFLE TUYỆT ĐỐI)",
-        computeMetric: "Phép nhân ma trận - vector nội bộ"
-      },
-      4: {
-        title: "Pha 4/4: Output Reconstruction",
-        math: [
-          "> Analyzer nhận vector y^(1) từ P₁ và y^(2) từ P₂",
-          "> Ghép kết quả: Y = y^(1) + y^(2) = Π · x + E (mod p)",
-          "> KẾT QUẢ: Dữ liệu được xáo trộn hoàn toàn (xóa danh tính) và được bảo vệ bằng nhiễu vi phân E.",
-          "> Analyzer thu được tổng thống kê chuẩn xác tiệm cận Central DP mà không lộ danh tính cá nhân."
-        ],
-        clientMetric: "0 Bytes",
-        serverMetric: "O(N) bytes gửi về Analyzer",
-        computeMetric: "Cộng vector tuyến tính O(N)"
-      }
-    };
+    // --- 4. STEPPER CONTROLS ---
+    const stepTitles = [
+      "",
+      "Pha 1/4: Offline Setup (P₀ Dealer)",
+      "Pha 2/4: Masked Client Submissions",
+      "Pha 3/4: Silent Shuffling & Randomization",
+      "Pha 4/4: Analyzer Output Reconstruction"
+    ];
 
     function setStep(step) {
       currentStep = step;
-      document.getElementById('stepBadge').innerText = phaseData[step].title;
+      document.getElementById('stepBadge').innerText = stepTitles[step];
 
-      // Cập nhật card CSS
       for (let i = 1; i <= 4; i++) {
         const card = document.getElementById(`card${i}`);
         if (i === currentStep) {
@@ -430,7 +686,6 @@
         }
       }
 
-      // Ẩn/Hiện rào cản đỏ ở Pha 3
       const barrier = document.getElementById('silentBarrier');
       if (currentStep === 3) {
         barrier.classList.remove('hidden');
@@ -438,28 +693,15 @@
         barrier.classList.add('hidden');
       }
 
-      // Cập nhật text giải thích toán học
-      const mathBox = document.getElementById('mathExplanation');
-      mathBox.innerHTML = phaseData[step].math.map(line => `<div>${line}</div>`).join('');
-
-      // Cập nhật metrics
-      document.getElementById('metricClient').innerText = phaseData[step].clientMetric;
-      document.getElementById('metricServer').innerText = phaseData[step].serverMetric;
-      document.getElementById('metricCompute').innerText = phaseData[step].computeMetric;
-
+      renderInspector();
       initParticles(currentStep);
     }
 
-    // Điều khiển nút bấm
     document.getElementById('btnNext').addEventListener('click', () => {
       setStep(currentStep === 4 ? 1 : currentStep + 1);
     });
     document.getElementById('btnPrev').addEventListener('click', () => {
       setStep(currentStep === 1 ? 4 : currentStep - 1);
-    });
-    document.getElementById('btnReset').addEventListener('click', () => {
-      setStep(1);
-      if (isPlaying) togglePlay();
     });
 
     function togglePlay() {
@@ -469,14 +711,15 @@
       if (isPlaying) {
         playTimer = setInterval(() => {
           setStep(currentStep === 4 ? 1 : currentStep + 1);
-        }, 3200);
+        }, 3400);
       } else {
         clearInterval(playTimer);
       }
     }
     document.getElementById('btnPlay').addEventListener('click', togglePlay);
 
-    // Chạy khởi động
+    // Khởi chạy ban đầu
+    regenerateRandomMath();
     setStep(1);
     render();
   </script>
