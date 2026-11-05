@@ -3,241 +3,144 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Doppio (AMP-SDP) Interactive Protocol & Evaluation</title>
+  <title>Doppio (AMP-SDP) - Protocol Mechanism Visualizer</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    @keyframes pulseGlow {
-      0%, 100% { opacity: 0.3; transform: scale(0.98); }
-      50% { opacity: 0.8; transform: scale(1.02); }
+    @keyframes pulseBarrier {
+      0%, 100% { border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+      50% { border-color: rgba(239, 68, 68, 0.9); box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
     }
-    .glow-effect { animation: pulseGlow 2.5s infinite ease-in-out; }
+    .barrier-alert { animation: pulseBarrier 1.5s infinite ease-in-out; }
     canvas { image-rendering: -webkit-optimize-contrast; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-teal-500 selection:text-white">
 
   <!-- HEADER -->
-  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-    <div>
-      <div class="flex items-center gap-3">
-        <span class="px-2.5 py-1 rounded bg-teal-500/20 text-teal-400 border border-teal-500/40 text-xs font-mono font-bold uppercase tracking-wider">PVLDB Artifact</span>
-        <h1 class="text-xl font-bold tracking-tight text-white">Doppio: 3-Server Multi-Party Shuffle DP</h1>
-      </div>
-      <p class="text-xs text-slate-400 mt-1">Nền tảng thực nghiệm: Local PoC (Rust) & Mô phỏng cơ chế giao thức AMP-SDP</p>
-    </div>
+  <header class="border-b border-slate-800 bg-slate-900/70 backdrop-blur sticky top-0 z-50 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
     <div class="flex items-center gap-3">
-      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> 22/22 Tests Passed (macOS)
-      </span>
+      <span class="px-2.5 py-1 rounded bg-teal-500/20 text-teal-300 border border-teal-500/40 text-xs font-mono font-bold">AMP-SDP</span>
+      <h1 class="text-lg font-bold tracking-tight text-white">Kiến Trúc & Giải Thuật Thực Thi Doppio (2+1 Server)</h1>
+    </div>
+    <div class="flex items-center gap-3 text-xs">
+      <span class="px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">Mô hình: <strong>Honest-but-Curious</strong></span>
+      <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono">Rust PoC: 22 Tests Passed</span>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto p-6 space-y-8">
+  <main class="max-w-7xl mx-auto p-6 space-y-6">
 
-    <!-- PHẦN 1: THE "WHY" - SO SÁNH ĐỐI ĐẦU NGẮN GỌN -->
-    <section class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800/80">
-        <div>
-          <h2 class="text-lg font-bold text-teal-300 flex items-center gap-2">
-            <span>1. Trade-off Analysis: Tại sao phải dùng Shuffle DP?</span>
-          </h2>
-          <p class="text-xs text-slate-400 mt-0.5">So sánh sự đánh đổi giữa Quyền riêng tư (Trust Model) và Độ chính xác (Utility) theo quy mô N</p>
+    <!-- THANH ĐIỀU KHIỂN TIẾN TRÌNH (STEPPER CONTROLS) -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
+      <div class="flex items-center gap-2">
+        <button id="btnPrev" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition">◀ Pha trước</button>
+        <button id="btnPlay" class="px-5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-xs font-bold text-white transition flex items-center gap-2 shadow-lg shadow-teal-950/40">
+          <span id="playIcon">▶</span> <span id="playText">Tự động diễn hoạt</span>
+        </button>
+        <button id="btnNext" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition">Pha kế tiếp ▶</button>
+        <button id="btnReset" class="px-3 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-xs text-slate-400 border border-slate-800 transition">Đặt lại</button>
+      </div>
+
+      <div class="flex items-center gap-1.5 text-xs">
+        <span class="text-slate-400 mr-1">Trạng thái:</span>
+        <span id="stepBadge" class="px-3 py-1 rounded-md bg-teal-500/10 text-teal-300 border border-teal-500/30 font-mono font-bold">Pha 1/4: Offline Setup</span>
+      </div>
+    </div>
+
+    <!-- 4 CARDS TIẾN TRÌNH THEO MÃ NGUỒN BÀI BÁO -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div id="card1" class="cursor-pointer p-4 rounded-xl border border-teal-500 bg-teal-500/10 transition-all" onclick="setStep(1)">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-[10px] font-mono font-bold text-teal-400 uppercase">Pha 1: Offline</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 font-mono">Server P₀</span>
         </div>
-        <div class="flex items-center gap-4 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800">
-          <label for="scaleN" class="text-xs font-medium text-slate-300">Quy mô mẫu (N):</label>
-          <input type="range" id="scaleN" min="100" max="20000" step="500" value="5000" class="w-36 accent-teal-400 cursor-pointer">
-          <span id="scaleNLabel" class="text-xs font-mono font-bold text-teal-400 w-16 text-right">5,000</span>
+        <h3 class="text-sm font-bold text-white">Sinh Correlated Randomness</h3>
+        <p class="text-xs text-slate-400 mt-1">P₀ tạo ma trận hoán vị [Π] và vector nhiễu vi phân [E], tách share phân phối trước cho P₁, P₂.</p>
+      </div>
+
+      <div id="card2" class="cursor-pointer p-4 rounded-xl border border-slate-800 bg-slate-900/60 opacity-60 transition-all" onclick="setStep(2)">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-[10px] font-mono font-bold text-slate-400 uppercase">Pha 2: Online</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">Clients</span>
+        </div>
+        <h3 class="text-sm font-bold text-white">Additive Secret Sharing</h3>
+        <p class="text-xs text-slate-400 mt-1">Client mã hóa dữ liệu $x_i = s_i^{(1)} + s_i^{(2)} \pmod p$. Gửi phân tán 16 bytes về 2 server.</p>
+      </div>
+
+      <div id="card3" class="cursor-pointer p-4 rounded-xl border border-slate-800 bg-slate-900/60 opacity-60 transition-all" onclick="setStep(3)">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-[10px] font-mono font-bold text-slate-400 uppercase">Pha 3: Online</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">P₁ & P₂</span>
+        </div>
+        <h3 class="text-sm font-bold text-white">Silent Shuffling</h3>
+        <p class="text-xs text-slate-400 mt-1">Hai server tự xáo trộn & làm mù cục bộ. Hoàn toàn <strong>không gửi gói tin nào</strong> qua lại.</p>
+      </div>
+
+      <div id="card4" class="cursor-pointer p-4 rounded-xl border border-slate-800 bg-slate-900/60 opacity-60 transition-all" onclick="setStep(4)">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-[10px] font-mono font-bold text-slate-400 uppercase">Pha 4: Output</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">Analyzer</span>
+        </div>
+        <h3 class="text-sm font-bold text-white">Reconstruction</h3>
+        <p class="text-xs text-slate-400 mt-1">Cộng gộp $y^{(1)} + y^{(2)}$ để thu được kết quả xáo trộn kèm nhiễu $(\epsilon, \delta)$-DP chuẩn xác.</p>
+      </div>
+    </div>
+
+    <!-- CANVAS MÔ PHỎNG ĐỘNG HỌC MẠNG VÀ CÁC THỰC THỂ -->
+    <div class="relative bg-slate-950 border border-slate-800 rounded-2xl p-4 h-[440px] overflow-hidden shadow-2xl">
+      <canvas id="protocolCanvas" class="w-full h-full block"></canvas>
+
+      <!-- BANNER CẢNH BÁO SILENT SHUFFLE Ở BƯỚC 3 -->
+      <div id="silentBarrier" class="hidden absolute top-[52%] left-1/2 -translate-x-1/2 -translate-y-1/2 border-2 border-dashed border-rose-500 bg-rose-950/80 backdrop-blur-md px-5 py-2.5 rounded-xl barrier-alert text-center z-10 pointer-events-none">
+        <div class="flex items-center gap-2 justify-center text-rose-400 font-mono font-bold text-xs uppercase tracking-wide">
+          <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+          Đường truyền thời gian thực bị khóa (Zero Online Traffic)
+        </div>
+        <p class="text-[11px] text-slate-300 mt-0.5">P₁ và P₂ độc lập nhân ma trận cục bộ: $y^{(j)} = \Pi^{(j)} \cdot s^{(j)} + E^{(j)}$</p>
+      </div>
+    </div>
+
+    <!-- STATE & MEMORY INSPECTOR (BẢNG SOI BỘ NHỚ THEO PHA) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      
+      <!-- Cột 1: Giải thích cơ chế toán học -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 lg:col-span-2">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-2 h-2 rounded-full bg-teal-400"></span>
+          <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Bản chất toán học đang thực thi (Inside the Protocol)</h4>
+        </div>
+        <div id="mathExplanation" class="text-xs text-slate-300 leading-relaxed font-mono bg-slate-950 p-3.5 rounded-lg border border-slate-800/80 space-y-1.5">
+          <!-- Nội dung thay đổi động theo bước -->
         </div>
       </div>
 
-      <!-- 3 CARDS SO SÁNH -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-        <!-- Central DP -->
-        <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
-          <div>
-            <div class="flex justify-between items-center mb-2">
-              <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Central DP</span>
-              <span class="px-2 py-0.5 rounded text-[10px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/30">Mô hình cổ điển</span>
-            </div>
-            <p class="text-xs text-slate-400">User gửi dữ liệu thô. Server trung tâm thêm nhiễu Laplace một lần duy nhất vào tổng gộp.</p>
-          </div>
-          <div class="mt-4 pt-3 border-t border-slate-800/60 space-y-2 text-xs">
-            <div class="flex justify-between"><span class="text-slate-400">Sai số lý thuyết:</span> <span class="font-mono text-emerald-400 font-bold">O(1/ε) - Rất thấp</span></div>
-            <div class="flex justify-between"><span class="text-slate-400">Mô hình tin cậy:</span> <span class="font-mono text-rose-400 font-bold">Tin cậy 100% Server</span></div>
-            <div class="flex justify-between"><span class="text-slate-400">Rủi ro:</span> <span class="text-rose-400">Single Point of Failure</span></div>
-          </div>
-        </div>
-
-        <!-- Local DP -->
-        <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
-          <div>
-            <div class="flex justify-between items-center mb-2">
-              <span class="text-xs font-semibold text-rose-400 uppercase tracking-wider">Local DP (LDP)</span>
-              <span class="px-2 py-0.5 rounded text-[10px] bg-rose-500/10 text-rose-300 border border-rose-500/30">Không cần tin ai</span>
-            </div>
-            <p class="text-xs text-slate-400">Mỗi client tự lật đồng xu gây nhiễu trước khi gửi. An toàn tuyệt đối tại máy khách.</p>
-          </div>
-          <div class="mt-4 pt-3 border-t border-slate-800/60 space-y-2 text-xs">
-            <div class="flex justify-between"><span class="text-slate-400">Sai số lý thuyết:</span> <span class="font-mono text-rose-400 font-bold" id="ldpErrorFormula">O(√N/ε) - Bùng nổ</span></div>
-            <div class="flex justify-between"><span class="text-slate-400">Mô hình tin cậy:</span> <span class="font-mono text-emerald-400 font-bold">Zero-Trust</span></div>
-            <div class="flex justify-between"><span class="text-slate-400">Rủi ro:</span> <span class="text-slate-300">Dữ liệu bị sai lệch nặng</span></div>
-          </div>
-        </div>
-
-        <!-- Doppio (Shuffle DP) -->
-        <div class="bg-slate-950 border-2 border-teal-500/50 rounded-xl p-4 flex flex-col justify-between relative overflow-hidden shadow-lg shadow-teal-950/30">
-          <div class="absolute -right-12 -top-12 w-24 h-24 bg-teal-500/10 rounded-full blur-xl pointer-events-none"></div>
-          <div>
-            <div class="flex justify-between items-center mb-2">
-              <span class="text-xs font-bold text-teal-300 uppercase tracking-wider flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-teal-400"></span> Doppio (AMP-SDP)
-              </span>
-              <span class="px-2 py-0.5 rounded text-[10px] bg-teal-500/20 text-teal-300 border border-teal-500/40 font-bold">Tối ưu PVLDB</span>
-            </div>
-            <p class="text-xs text-slate-300">Khuếch đại riêng tư qua xáo trộn bằng SMPC 2-Server. Tách biệt hoàn toàn Offline & Online.</p>
-          </div>
-          <div class="mt-4 pt-3 border-t border-slate-800 space-y-2 text-xs">
-            <div class="flex justify-between"><span class="text-slate-400">Sai số ước lượng:</span> <span class="font-mono text-teal-300 font-bold">Tiệm cận Central DP</span></div>
-            <div class="flex justify-between"><span class="text-slate-400">Mô hình tin cậy:</span> <span class="font-mono text-emerald-400 font-bold">2 Server không thông đồng</span></div>
-            <div class="flex justify-between"><span class="text-slate-400">Chi phí Online:</span> <span class="font-mono text-teal-400 font-bold">0 byte trao đổi server</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- LIVE METRICS BAR: BẰNG CHỨNG ĐỊNH LƯỢNG -->
-      <div class="mt-6 bg-slate-950 p-4 rounded-xl border border-slate-800/80 flex flex-wrap items-center justify-around gap-4 text-center">
-        <div>
-          <span class="text-[11px] text-slate-400 uppercase tracking-wider block">Dữ liệu gốc (Ground Truth)</span>
-          <span id="trueCount" class="text-base font-mono font-bold text-white">1,750 (35.0%)</span>
-        </div>
-        <div class="h-8 w-px bg-slate-800 hidden md:block"></div>
-        <div>
-          <span class="text-[11px] text-rose-400 uppercase tracking-wider block">Sai số Local DP (Randomized)</span>
-          <span id="ldpErrorVal" class="text-base font-mono font-bold text-rose-400">± 128 người (~7.3%)</span>
-        </div>
-        <div class="h-8 w-px bg-slate-800 hidden md:block"></div>
-        <div>
-          <span class="text-[11px] text-teal-400 uppercase tracking-wider block">Sai số Doppio (Shuffle DP)</span>
-          <span id="doppioErrorVal" class="text-base font-mono font-bold text-teal-300">± 2 người (~0.1%)</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- PHẦN 2: THE "HOW" - DEEP-DIVE CHI TIẾT CƠ CHẾ DOPPIO -->
-    <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-2xl relative">
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-800">
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full bg-teal-400"></span>
-            <h2 class="text-lg font-bold text-white">2. Deep-Dive: Cơ chế vận hành thực tế của Doppio (2+1 Server)</h2>
-          </div>
-          <p class="text-xs text-slate-400 mt-0.5">Mô phỏng động học luồng Additive Secret Sharing & Silent Shuffling</p>
-        </div>
-
-        <!-- CONTROLS CHO PROTOCOL -->
-        <div class="flex items-center gap-2">
-          <button id="btnPrev" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">◀ Bước trước</button>
-          <button id="btnPlay" class="px-4 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-xs font-bold text-white transition flex items-center gap-1.5">
-            <span id="playIcon">▶</span> <span id="playText">Tự động chạy</span>
-          </button>
-          <button id="btnNext" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">Bước tiếp ▶</button>
-          <button id="btnReset" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs text-slate-400 border border-slate-800 transition">Đặt lại</button>
-        </div>
-      </div>
-
-      <!-- TIẾN TRÌNH 4 BƯỚC (STEPPER) -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-6">
-        <div id="stepCard1" class="p-3 rounded-xl border border-teal-500/50 bg-teal-500/10 transition-all">
-          <span class="text-[10px] font-mono font-bold text-teal-400 block">PHA 1 (OFFLINE)</span>
-          <span class="text-xs font-bold text-white block mt-0.5">P0 Sinh Correlation</span>
-          <p class="text-[11px] text-slate-400 mt-1">Sinh trước hoán vị π & vector nhiễu E, chia share gửi P1, P2.</p>
-        </div>
-        <div id="stepCard2" class="p-3 rounded-xl border border-slate-800 bg-slate-950 transition-all">
-          <span class="text-[10px] font-mono font-bold text-slate-400 block">PHA 2 (CLIENT)</span>
-          <span class="text-xs font-bold text-white block mt-0.5">Additive Sharing</span>
-          <p class="text-[11px] text-slate-400 mt-1">Client tách bit x = s₁ + s₂ (mod p), gửi phân tán cho 2 server.</p>
-        </div>
-        <div id="stepCard3" class="p-3 rounded-xl border border-slate-800 bg-slate-950 transition-all">
-          <span class="text-[10px] font-mono font-bold text-slate-400 block">PHA 3 (ONLINE)</span>
-          <span class="text-xs font-bold text-white block mt-0.5">Silent Shuffling</span>
-          <p class="text-[11px] text-slate-400 mt-1">P1, P2 tự shuffle & làm mù cục bộ. Không trao đổi gói tin nào.</p>
-        </div>
-        <div id="stepCard4" class="p-3 rounded-xl border border-slate-800 bg-slate-950 transition-all">
-          <span class="text-[10px] font-mono font-bold text-slate-400 block">PHA 4 (OUTPUT)</span>
-          <span class="text-xs font-bold text-white block mt-0.5">Reconstruction</span>
-          <p class="text-[11px] text-slate-400 mt-1">Analyzer cộng gộp y₁ + y₂, khôi phục tổng đạt chuẩn vi phân.</p>
-        </div>
-      </div>
-
-      <!-- KHUNG CANVAS MÔ PHỎNG ĐỘNG HỌC (THE HOW) -->
-      <div class="mt-6 relative bg-slate-950 rounded-xl border border-slate-800 p-4 h-[380px] overflow-hidden">
-        <canvas id="doppioCanvas" class="w-full h-full block"></canvas>
+      <!-- Cột 2: Bảng đo thông số tức thời của pha -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+        <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Thông số kỹ thuật tại Pha này</h4>
         
-        <!-- CALLOUT NHẤN MẠNH SILENT SHUFFLE -->
-        <div id="silentBadge" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 px-4 py-2 rounded-full text-xs font-mono font-bold backdrop-blur-md shadow-lg flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-          SILENT SHUFFLE: 0 GÓI TIN TRAO ĐỔI GIỮA SERVER 1 & SERVER 2
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between p-2 rounded bg-slate-950 border border-slate-800/60">
+            <span class="text-slate-400">Băng thông Client:</span>
+            <span id="metricClient" class="font-mono font-bold text-teal-400">0 Bytes (Idle)</span>
+          </div>
+          <div class="flex justify-between p-2 rounded bg-slate-950 border border-slate-800/60">
+            <span class="text-slate-400">Giao tiếp P₁ ↔ P₂:</span>
+            <span id="metricServer" class="font-mono font-bold text-emerald-400">0 Bytes</span>
+          </div>
+          <div class="flex justify-between p-2 rounded bg-slate-950 border border-slate-800/60">
+            <span class="text-slate-400">Độ phức tạp tính toán:</span>
+            <span id="metricCompute" class="font-mono font-bold text-amber-400">O(N²) trong PoC Minimal</span>
+          </div>
         </div>
       </div>
 
-      <!-- BỘ ĐẾM THÔNG SỐ KỸ THUẬT (LIVE METRICS THEO BÀI BÁO) -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
-        <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl">
-          <span class="text-[11px] text-slate-400 uppercase tracking-wider block">Băng thông Client</span>
-          <span class="text-lg font-mono font-bold text-teal-300 mt-1 block">16 Bytes</span>
-          <span class="text-[10px] text-slate-500">2 shares x 64-bit field</span>
-        </div>
-        <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl">
-          <span class="text-[11px] text-slate-400 uppercase tracking-wider block">Giao tiếp P1 ↔ P2 Online</span>
-          <span class="text-lg font-mono font-bold text-emerald-400 mt-1 block">0 Bytes</span>
-          <span class="text-[10px] text-slate-500">Triệt tiêu độ trễ mạng</span>
-        </div>
-        <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl">
-          <span class="text-[11px] text-slate-400 uppercase tracking-wider block">Ngân sách riêng tư</span>
-          <span class="text-lg font-mono font-bold text-indigo-300 mt-1 block">ε = 1.0, δ = 10⁻⁵</span>
-          <span class="text-[10px] text-slate-500">Privacy Amplification</span>
-        </div>
-        <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl">
-          <span class="text-[11px] text-slate-400 uppercase tracking-wider block">Mức độ bảo mật</span>
-          <span class="text-lg font-mono font-bold text-amber-300 mt-1 block">Honest-but-curious</span>
-          <span class="text-[10px] text-slate-500">An toàn khi 2 server không thông đồng</span>
-        </div>
-      </div>
-    </section>
+    </div>
 
   </main>
 
   <script>
-    // --- KHỞI TẠO LOGIC VÀ CANVAS ---
-    const scaleNSlider = document.getElementById('scaleN');
-    const scaleNLabel = document.getElementById('scaleNLabel');
-    const trueCountEl = document.getElementById('trueCount');
-    const ldpErrorValEl = document.getElementById('ldpErrorVal');
-    const doppioErrorValEl = document.getElementById('doppioErrorVal');
-    const silentBadge = document.getElementById('silentBadge');
-
-    // Cập nhật số liệu Phần 1
-    function updateMetrics() {
-      const n = parseInt(scaleNSlider.value);
-      scaleNLabel.innerText = n.toLocaleString();
-      const trueSum = Math.round(n * 0.35);
-      trueCountEl.innerText = `${trueSum.toLocaleString()} (35.0%)`;
-
-      // Sai số thực tế mô phỏng
-      const eps = 1.0;
-      const ldpStd = Math.round(Math.sqrt(n) / eps);
-      const ldpRel = ((ldpStd / trueSum) * 100).toFixed(1);
-      ldpErrorValEl.innerText = `± ${ldpStd} người (~${ldpRel}%)`;
-
-      // Doppio sai số xấp xỉ Central DP
-      doppioErrorValEl.innerText = `± 2 người (~0.1%)`;
-    }
-    scaleNSlider.addEventListener('input', updateMetrics);
-    updateMetrics();
-
-    // --- CANVAS ENGINE MÔ PHỎNG DOPPIO ---
-    const canvas = document.getElementById('doppioCanvas');
+    // --- THIẾT LẬP CANVAS & DỮ LIỆU ĐỘNG ---
+    const canvas = document.getElementById('protocolCanvas');
     const ctx = canvas.getContext('2d');
     let width, height;
 
@@ -251,179 +154,188 @@
     window.addEventListener('resize', resize);
     resize();
 
-    // Nodes vị trí
     let currentStep = 1;
-    let particles = [];
     let isPlaying = false;
     let playTimer = null;
+    let particles = [];
 
-    function getNodes() {
+    // Tọa độ các thực thể
+    function getLayout() {
       return {
-        p0: { x: width * 0.5, y: height * 0.16, label: "Server Phụ Trợ (P₀)", sub: "Offline Dealer", color: "#38bdf8" },
+        p0: { x: width * 0.50, y: height * 0.14, label: "Server Phụ Trợ (P₀)", role: "Offline Dealer", color: "#38bdf8" },
         clients: [
-          { x: width * 0.15, y: height * 0.40, label: "Client 1", color: "#a855f7" },
-          { x: width * 0.15, y: height * 0.55, label: "Client 2", color: "#a855f7" },
-          { x: width * 0.15, y: height * 0.70, label: "Client N", color: "#a855f7" },
+          { x: width * 0.12, y: height * 0.36, label: "Client 1", val: "x₁ = 1", color: "#c084fc" },
+          { x: width * 0.12, y: height * 0.54, label: "Client 2", val: "x₂ = 0", color: "#c084fc" },
+          { x: width * 0.12, y: height * 0.72, label: "Client N", val: "x_n = 1", color: "#c084fc" }
         ],
-        p1: { x: width * 0.55, y: height * 0.45, label: "Computing Server 1 (P₁)", sub: "Nhận Share s₁ + [π]₁", color: "#14b8a6" },
-        p2: { x: width * 0.55, y: height * 0.72, label: "Computing Server 2 (P₂)", sub: "Nhận Share s₂ + [π]₂", color: "#14b8a6" },
-        analyzer: { x: width * 0.88, y: height * 0.58, label: "Analyzer", sub: "Reconstruction", color: "#f59e0b" }
+        p1: { x: width * 0.52, y: height * 0.42, label: "Computing Server 1 (P₁)", role: "Online Processor", color: "#14b8a6" },
+        p2: { x: width * 0.52, y: height * 0.74, label: "Computing Server 2 (P₂)", role: "Online Processor", color: "#14b8a6" },
+        analyzer: { x: width * 0.88, y: height * 0.58, label: "Analyzer / Curator", role: "Reconstruction", color: "#f59e0b" }
       };
     }
 
-    function spawnParticlesForStep(step) {
+    // Sinh luồng hạt tương ứng từng pha
+    function initParticles(step) {
       particles = [];
-      const nodes = getNodes();
+      const l = getLayout();
 
       if (step === 1) {
-        // P0 bắn correlated randomness sang P1 và P2
-        for (let i = 0; i < 15; i++) {
+        // P0 gửi tương quan [Π] và [E] sang P1 và P2
+        for (let i = 0; i < 20; i++) {
           particles.push({
-            x: nodes.p0.x, y: nodes.p0.y,
-            targetX: nodes.p1.x, targetY: nodes.p1.y,
-            progress: Math.random() * -0.5,
-            speed: 0.015 + Math.random() * 0.008,
-            color: "#38bdf8",
-            size: 4
+            x: l.p0.x, y: l.p0.y,
+            targetX: l.p1.x, targetY: l.p1.y,
+            progress: Math.random() * -0.6,
+            speed: 0.012 + Math.random() * 0.008,
+            color: "#38bdf8", size: 4
           });
           particles.push({
-            x: nodes.p0.x, y: nodes.p0.y,
-            targetX: nodes.p2.x, targetY: nodes.p2.y,
-            progress: Math.random() * -0.5,
-            speed: 0.015 + Math.random() * 0.008,
-            color: "#38bdf8",
-            size: 4
+            x: l.p0.x, y: l.p0.y,
+            targetX: l.p2.x, targetY: l.p2.y,
+            progress: Math.random() * -0.6,
+            speed: 0.012 + Math.random() * 0.008,
+            color: "#38bdf8", size: 4
           });
         }
       } else if (step === 2) {
-        // Clients bắn shares sang P1 và P2
-        nodes.clients.forEach(c => {
-          for (let i = 0; i < 6; i++) {
+        // Clients gửi 2 mảnh shares về P1 và P2
+        l.clients.forEach(c => {
+          for (let i = 0; i < 8; i++) {
             particles.push({
               x: c.x, y: c.y,
-              targetX: nodes.p1.x, targetY: nodes.p1.y,
-              progress: Math.random() * -0.6,
-              speed: 0.018 + Math.random() * 0.005,
-              color: "#c084fc",
-              size: 3.5
+              targetX: l.p1.x, targetY: l.p1.y,
+              progress: Math.random() * -0.8,
+              speed: 0.016 + Math.random() * 0.006,
+              color: "#c084fc", size: 3.5
             });
             particles.push({
               x: c.x, y: c.y,
-              targetX: nodes.p2.x, targetY: nodes.p2.y,
-              progress: Math.random() * -0.6,
-              speed: 0.018 + Math.random() * 0.005,
-              color: "#c084fc",
-              size: 3.5
+              targetX: l.p2.x, targetY: l.p2.y,
+              progress: Math.random() * -0.8,
+              speed: 0.016 + Math.random() * 0.006,
+              color: "#c084fc", size: 3.5
             });
           }
         });
       } else if (step === 3) {
-        // Silent Shuffle: Các hạt quay vòng cục bộ bên trong P1 và P2
-        for (let i = 0; i < 20; i++) {
+        // Silent Shuffle: Các share quay vòng độc lập cục bộ trong P1 và P2
+        for (let i = 0; i < 24; i++) {
           particles.push({
-            centerX: nodes.p1.x, centerY: nodes.p1.y,
+            centerX: l.p1.x, centerY: l.p1.y,
             angle: Math.random() * Math.PI * 2,
-            radius: 20 + Math.random() * 25,
-            speed: 0.04,
-            color: "#2dd4bf",
-            size: 3,
-            isOrbit: true
+            radius: 18 + Math.random() * 26,
+            speed: 0.035,
+            color: "#2dd4bf", size: 3.5, isOrbit: true
           });
           particles.push({
-            centerX: nodes.p2.x, centerY: nodes.p2.y,
+            centerX: l.p2.x, centerY: l.p2.y,
             angle: Math.random() * Math.PI * 2,
-            radius: 20 + Math.random() * 25,
-            speed: -0.04,
-            color: "#2dd4bf",
-            size: 3,
-            isOrbit: true
+            radius: 18 + Math.random() * 26,
+            speed: -0.035,
+            color: "#2dd4bf", size: 3.5, isOrbit: true
           });
         }
       } else if (step === 4) {
-        // P1 và P2 gửi kết quả gộp về Analyzer
-        for (let i = 0; i < 15; i++) {
+        // Gửi kết quả gộp về Analyzer
+        for (let i = 0; i < 18; i++) {
           particles.push({
-            x: nodes.p1.x, y: nodes.p1.y,
-            targetX: nodes.analyzer.x, targetY: nodes.analyzer.y,
+            x: l.p1.x, y: l.p1.y,
+            targetX: l.analyzer.x, targetY: l.analyzer.y,
             progress: Math.random() * -0.5,
-            speed: 0.02 + Math.random() * 0.005,
-            color: "#f59e0b",
-            size: 4
+            speed: 0.018 + Math.random() * 0.006,
+            color: "#f59e0b", size: 4
           });
           particles.push({
-            x: nodes.p2.x, y: nodes.p2.y,
-            targetX: nodes.analyzer.x, targetY: nodes.analyzer.y,
+            x: l.p2.x, y: l.p2.y,
+            targetX: l.analyzer.x, targetY: l.analyzer.y,
             progress: Math.random() * -0.5,
-            speed: 0.02 + Math.random() * 0.005,
-            color: "#f59e0b",
-            size: 4
+            speed: 0.018 + Math.random() * 0.006,
+            color: "#f59e0b", size: 4
           });
         }
       }
     }
 
-    function drawNode(node, isLarge = false) {
+    // Vẽ từng node
+    function renderNode(n, isLarge = false, hasVal = false) {
       ctx.save();
-      ctx.fillStyle = node.color + "22";
-      ctx.strokeStyle = node.color;
-      ctx.lineWidth = 1.5;
-      const r = isLarge ? 28 : 20;
+      const r = isLarge ? 30 : 20;
+
+      // Glow viền
+      ctx.fillStyle = n.color + "18";
+      ctx.strokeStyle = n.color;
+      ctx.lineWidth = 1.8;
       ctx.beginPath();
-      ctx.arc(node.x, node.y, r, 0, Math.PI * 2);
+      ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
+      // Text tiêu đề
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 11px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(node.label, node.x, node.y - (r + 8));
+      ctx.fillText(n.label, n.x, n.y - (r + 8));
 
-      if (node.sub) {
+      // Text vai trò hoặc giá trị
+      if (n.role) {
         ctx.fillStyle = "#94a3b8";
         ctx.font = "9px monospace";
-        ctx.fillText(node.sub, node.x, node.y + r + 14);
+        ctx.fillText(n.role, n.x, n.y + r + 14);
+      }
+      if (hasVal && n.val) {
+        ctx.fillStyle = "#c084fc";
+        ctx.font = "bold 10px monospace";
+        ctx.fillText(n.val, n.x, n.y + 4);
       }
       ctx.restore();
     }
 
+    // Vòng lặp Render Canvas
     function render() {
       ctx.clearRect(0, 0, width, height);
-      const nodes = getNodes();
+      const l = getLayout();
 
-      // Vẽ đường kết nối nền
-      ctx.strokeStyle = "#1e293b";
-      ctx.lineWidth = 1;
+      // Đường dây nối mạng
       ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = "#334155";
+      ctx.lineWidth = 1;
 
-      // P0 to P1, P2
-      ctx.beginPath(); ctx.moveTo(nodes.p0.x, nodes.p0.y); ctx.lineTo(nodes.p1.x, nodes.p1.y); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(nodes.p0.x, nodes.p0.y); ctx.lineTo(nodes.p2.x, nodes.p2.y); ctx.stroke();
-      // Clients to P1, P2
-      nodes.clients.forEach(c => {
-        ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(nodes.p1.x, nodes.p1.y); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(nodes.p2.x, nodes.p2.y); ctx.stroke();
+      // P0 -> P1, P2
+      ctx.beginPath(); ctx.moveTo(l.p0.x, l.p0.y); ctx.lineTo(l.p1.x, l.p1.y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(l.p0.x, l.p0.y); ctx.lineTo(l.p2.x, l.p2.y); ctx.stroke();
+
+      // Clients -> P1, P2
+      l.clients.forEach(c => {
+        ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(l.p1.x, l.p1.y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(l.p2.x, l.p2.y); ctx.stroke();
       });
-      // P1, P2 to Analyzer
-      ctx.beginPath(); ctx.moveTo(nodes.p1.x, nodes.p1.y); ctx.lineTo(nodes.analyzer.x, nodes.analyzer.y); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(nodes.p2.x, nodes.p2.y); ctx.lineTo(nodes.analyzer.x, nodes.analyzer.y); ctx.stroke();
 
-      // Giữa P1 và P2: Đường đỏ cấm giao tiếp thời gian thực
+      // P1, P2 -> Analyzer
+      ctx.beginPath(); ctx.moveTo(l.p1.x, l.p1.y); ctx.lineTo(l.analyzer.x, l.analyzer.y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(l.p2.x, l.p2.y); ctx.lineTo(l.analyzer.x, l.analyzer.y); ctx.stroke();
+
+      // Đường liên kết giữa P1 và P2 (Có hiển thị trạng thái chặn ở bước 3)
       ctx.beginPath();
-      ctx.strokeStyle = currentStep === 3 ? "#ef444466" : "#334155";
-      ctx.lineWidth = currentStep === 3 ? 2 : 1;
-      ctx.moveTo(nodes.p1.x, nodes.p1.y + 25);
-      ctx.lineTo(nodes.p2.x, nodes.p2.y - 25);
-      ctx.stroke();
       ctx.setLineDash([]);
+      if (currentStep === 3) {
+        ctx.strokeStyle = "#ef4444";
+        ctx.lineWidth = 3;
+      } else {
+        ctx.strokeStyle = "#1e293b";
+        ctx.lineWidth = 1;
+      }
+      ctx.moveTo(l.p1.x, l.p1.y + 32);
+      ctx.lineTo(l.p2.x, l.p2.y - 32);
+      ctx.stroke();
 
-      // Vẽ các node
-      drawNode(nodes.p0, true);
-      nodes.clients.forEach(c => drawNode(c, false));
-      drawNode(nodes.p1, true);
-      drawNode(nodes.p2, true);
-      drawNode(nodes.analyzer, true);
+      // Vẽ Nodes
+      renderNode(l.p0, true);
+      l.clients.forEach(c => renderNode(c, false, true));
+      renderNode(l.p1, true);
+      renderNode(l.p2, true);
+      renderNode(l.analyzer, true);
 
-      // Cập nhật & vẽ hạt chuyển động
+      // Cập nhật và vẽ hạt
       particles.forEach(p => {
         if (p.isOrbit) {
           p.angle += p.speed;
@@ -450,29 +362,95 @@
       requestAnimationFrame(render);
     }
 
-    // Quản lý chuyển bước
+    // NỘI DUNG GIẢI THÍCH TOÁN HỌC & THÔNG SỐ THEO PHA
+    const phaseData = {
+      1: {
+        title: "Pha 1/4: Offline Setup (P₀ Dealer)",
+        math: [
+          "> [P₀] Sinh hoán vị ngẫu nhiên π: Biểu diễn dưới dạng ma trận hoán vị Π ∈ {0,1}^(N×N)",
+          "> [P₀] Tách bí mật ma trận: Π = [Π]₁ + [Π]₂ (mod p)",
+          "> [P₀] Sinh vector nhiễu bảo đảm (ε, δ)-DP: E = [E]₁ + [E]₂ (mod p)",
+          "> Phân phối [Π]₁, [E]₁ cho Server P₁ và [Π]₂, [E]₂ cho Server P₂ qua kênh bảo mật nội bộ."
+        ],
+        clientMetric: "0 Bytes (Chưa tham gia)",
+        serverMetric: "Offline Correlated Sync",
+        computeMetric: "O(N²) sinh ma trận [Π]"
+      },
+      2: {
+        title: "Pha 2/4: Online Client Submission",
+        math: [
+          "> Mỗi Client i sở hữu bit dữ liệu bí mật x_i ∈ {0, 1}",
+          "> Client sinh ngẫu nhiên s_i^(1) ∈ F_p, tính s_i^(2) = x_i - s_i^(1) (mod p)",
+          "> Gửi s_i^(1) cho P₁ và s_i^(2) cho P₂ qua đường truyền mạng công cộng.",
+          "> BẢO MẬT: Mỗi server chỉ nhận một số ngẫu nhiên phân phối đều, không thể đoán được x_i."
+        ],
+        clientMetric: "16 Bytes (2 phần tử F_p 64-bit)",
+        serverMetric: "0 Bytes (Chỉ nhận từ Client)",
+        computeMetric: "O(1) mỗi client (Cực nhẹ)"
+      },
+      3: {
+        title: "Pha 3/4: Silent Shuffling & Randomization",
+        math: [
+          "> Server P₁ tính tích cục bộ: y^(1) = [Π]₁ · s^(1) + [E]₁ (mod p)",
+          "> Server P₂ tính tích cục bộ: y^(2) = [Π]₂ · s^(2) + [E]₂ (mod p)",
+          "> TÍNH CHẤT SILENT: Không có bất kỳ gói tin mạng nào trao đổi giữa P₁ và P₂!",
+          "> Thứ tự dữ liệu được xáo trộn ngầm và làm mù ngay trong không gian chia sẻ bí mật."
+        ],
+        clientMetric: "0 Bytes (Đã ngắt kết nối)",
+        serverMetric: "0 Bytes (SILENT SHUFFLE TUYỆT ĐỐI)",
+        computeMetric: "Phép nhân ma trận - vector nội bộ"
+      },
+      4: {
+        title: "Pha 4/4: Output Reconstruction",
+        math: [
+          "> Analyzer nhận vector y^(1) từ P₁ và y^(2) từ P₂",
+          "> Ghép kết quả: Y = y^(1) + y^(2) = Π · x + E (mod p)",
+          "> KẾT QUẢ: Dữ liệu được xáo trộn hoàn toàn (xóa danh tính) và được bảo vệ bằng nhiễu vi phân E.",
+          "> Analyzer thu được tổng thống kê chuẩn xác tiệm cận Central DP mà không lộ danh tính cá nhân."
+        ],
+        clientMetric: "0 Bytes",
+        serverMetric: "O(N) bytes gửi về Analyzer",
+        computeMetric: "Cộng vector tuyến tính O(N)"
+      }
+    };
+
     function setStep(step) {
       currentStep = step;
+      document.getElementById('stepBadge').innerText = phaseData[step].title;
+
+      // Cập nhật card CSS
       for (let i = 1; i <= 4; i++) {
-        const card = document.getElementById(`stepCard${i}`);
+        const card = document.getElementById(`card${i}`);
         if (i === currentStep) {
-          card.className = "p-3 rounded-xl border border-teal-500/50 bg-teal-500/10 transition-all";
-          card.querySelector("span").className = "text-[10px] font-mono font-bold text-teal-400 block";
+          card.className = "cursor-pointer p-4 rounded-xl border border-teal-500 bg-teal-500/10 transition-all shadow-md";
+          card.querySelector("span").className = "text-[10px] font-mono font-bold text-teal-400 uppercase";
         } else {
-          card.className = "p-3 rounded-xl border border-slate-800 bg-slate-950 transition-all opacity-60";
-          card.querySelector("span").className = "text-[10px] font-mono font-bold text-slate-500 block";
+          card.className = "cursor-pointer p-4 rounded-xl border border-slate-800 bg-slate-900/60 opacity-60 transition-all";
+          card.querySelector("span").className = "text-[10px] font-mono font-bold text-slate-400 uppercase";
         }
       }
 
+      // Ẩn/Hiện rào cản đỏ ở Pha 3
+      const barrier = document.getElementById('silentBarrier');
       if (currentStep === 3) {
-        silentBadge.classList.remove('hidden');
+        barrier.classList.remove('hidden');
       } else {
-        silentBadge.classList.add('hidden');
+        barrier.classList.add('hidden');
       }
 
-      spawnParticlesForStep(currentStep);
+      // Cập nhật text giải thích toán học
+      const mathBox = document.getElementById('mathExplanation');
+      mathBox.innerHTML = phaseData[step].math.map(line => `<div>${line}</div>`).join('');
+
+      // Cập nhật metrics
+      document.getElementById('metricClient').innerText = phaseData[step].clientMetric;
+      document.getElementById('metricServer').innerText = phaseData[step].serverMetric;
+      document.getElementById('metricCompute').innerText = phaseData[step].computeMetric;
+
+      initParticles(currentStep);
     }
 
+    // Điều khiển nút bấm
     document.getElementById('btnNext').addEventListener('click', () => {
       setStep(currentStep === 4 ? 1 : currentStep + 1);
     });
@@ -486,19 +464,19 @@
 
     function togglePlay() {
       isPlaying = !isPlaying;
-      document.getElementById('playText').innerText = isPlaying ? "Tạm dừng" : "Tự động chạy";
+      document.getElementById('playText').innerText = isPlaying ? "Tạm dừng" : "Tự động diễn hoạt";
       document.getElementById('playIcon').innerText = isPlaying ? "⏸" : "▶";
       if (isPlaying) {
         playTimer = setInterval(() => {
           setStep(currentStep === 4 ? 1 : currentStep + 1);
-        }, 2800);
+        }, 3200);
       } else {
         clearInterval(playTimer);
       }
     }
     document.getElementById('btnPlay').addEventListener('click', togglePlay);
 
-    // Bắt đầu
+    // Chạy khởi động
     setStep(1);
     render();
   </script>
